@@ -8,6 +8,6 @@ Now with:
 - Portals
 - Pixelate button
 
-Download: <a href="https://github.com/karsten314159/uRiddleFX/blob/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
+Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
 
 ![](preview.png "Preview")
