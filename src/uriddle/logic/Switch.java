@@ -9,6 +9,6 @@ public class Switch {
 
   @Override
   public String toString() {
-    return "Swtich " + num;
+    return "Switch " + num;
   }
 }

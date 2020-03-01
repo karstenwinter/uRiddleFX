@@ -19,7 +19,7 @@ public class Logic {
     State state = movePlayer(level, dir, PLAYER);
     State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER);
 
-    return state == null ? state2 : state == REACHED_EXIT ? state : state2;
+    return state2 == NO_PLAYER ? state : state == null ? state2 : state == REACHED_EXIT ? state : state2;
   }
 
   private State movePlayer(Level level, Direction dir, Block.BlockType playerType) {
@@ -27,6 +27,7 @@ public class Logic {
     if (pair == null) {
       return NO_PLAYER;
     }
+    //Direction originalDir = dir;
     Block playerBlock = pair.getKey();
     int y = pair.getValue()[0];
     int x = pair.getValue()[1];
@@ -35,8 +36,10 @@ public class Logic {
     int targetX = x + dir.dx;
     LOG.debug("from Y%sX%s to Y%sX%s", y, x, targetY, targetX);
 
-    Block targetBlock = null;
+    Block targetBlock;
     State res = CANNOT_MOVE;
+
+    boolean targetWasPortal = false;
     if (targetY < 0 || targetY >= level.rows.size()) {
       LOG.debug("target pos out of bounds");
     } else {
@@ -44,6 +47,8 @@ public class Logic {
       if (targetX < 0 || targetX >= targetRow.cols.size()) {
         LOG.debug("target pos out of bounds");
       } else {
+        Direction fromPortalDir = null;
+        Direction toPortalDir = null;
 
         targetBlock = targetRow.cols.get(targetX);
         if (targetBlock.portal != null) {
@@ -57,11 +62,16 @@ public class Logic {
               portalX++;
 
               if (c.portal != null && targetBlock.portal.num != c.portal.num) {
-                targetBlock = c;
-                int dx = targetBlock.portal.dir.dx;
-                int dy = targetBlock.portal.dir.dy;
-                targetBlock = level.rows.get(portalY + dy).cols.get(portalX + dx);
+                fromPortalDir = targetBlock.portal.dir;
+                Block targetPortal = c;
+                targetWasPortal = true;
+                // dir = targetPortal.portal.dir;
+                toPortalDir = targetPortal.portal.dir;
+                LOG.debug("target portal at Y" + portalY + "X" + portalX);
 
+                int dx = toPortalDir.dx;
+                int dy = toPortalDir.dy;
+                targetBlock = level.rows.get(portalY + dy).cols.get(portalX + dx);
                 LOG.debug("new target behind portal: " + targetBlock + " @ Y" + (portalY + dy) + "X" + (portalX + dx));
                 break outer;
               }
@@ -71,9 +81,16 @@ public class Logic {
 
         boolean isExit = targetBlock.type == EXIT;
 
-        boolean moved = doMove(dir, playerBlock, targetBlock, level, playerType);
+        /*if (targetWasPortal) {
+          boolean canMove = doMove(dir, playerBlock, targetBlock, level, playerType, true);
+          if (!canMove) {
+            return CANNOT_MOVE;
+          }
+        }*/
+        boolean moved = doMove(dir, playerBlock, targetBlock, level, playerType, false,
+                fromPortalDir, toPortalDir);
         if (moved) {
-          res = MOVED;
+          res = targetWasPortal ? USED_PORTAL : MOVED;
 
           if (targetBlock.bigU != null && targetBlock.smallU != null
                   && targetBlock.bigU.type == IMPORTANT
@@ -108,18 +125,44 @@ public class Logic {
     return res;
   }
 
-  boolean doMove(Direction dir, Block player, Block target, Level level, Block.BlockType playerType) {
+  void changeDirs(Block block, boolean opposite, boolean clockwiseChange) {
+    if (opposite) {
+      LOG.debug("change block into oppsite dirs" + block);
+      if (block.smallU != null) {
+        block.smallU.dir = block.smallU.dir.opposite();
+      }
+      if (block.bigU != null) {
+        block.bigU.dir = block.bigU.dir.opposite();
+      }
+      LOG.debug("after: " + block);
+    } else {
+      LOG.debug("change block into oppsite dirs with clockwise  " + clockwiseChange + ": " + block);
+      if (block.smallU != null) {
+        block.smallU.dir = block.smallU.dir.turn(clockwiseChange);
+      }
+      if (block.bigU != null) {
+        block.bigU.dir = block.bigU.dir.turn(clockwiseChange);
+      }
+      LOG.debug("after: " + block);
+    }
+  }
+
+  boolean doMove(Direction inputDir, Block player, Block target, Level level, Block.BlockType playerType,
+                 boolean checkOnly, Direction fromPortalDir, Direction toPortalDir) {
+    Direction enterDir = toPortalDir == null ? inputDir : toPortalDir;
+    Direction moveAwayDir = fromPortalDir == null ? inputDir : fromPortalDir.opposite();
+
     if (target.type == BOUNDS || target.type == GATE || (target.type == DOOR && !target.door.open)) {
       LOG.debug("cannot go on blocked " + target);
       return false;
     }
 
-    if (target.smallU != null && target.smallU.dir.opposite() != dir) {
+    if (target.smallU != null && target.smallU.dir.opposite() != enterDir) {
       LOG.debug("cannot go into small u");
       return false;
     }
 
-    if (target.bigU != null && target.bigU.dir.opposite() != dir) {
+    if (target.bigU != null && target.bigU.dir.opposite() != enterDir) {
       LOG.debug("cannot go into big u");
       return false;
     }
@@ -127,16 +170,18 @@ public class Logic {
     if (player.bigU != null) {
       Direction bigUDir = player.bigU.dir;
       LOG.debug("player has big u open to " + bigUDir);
-      if (dir != bigUDir) {
+      if (moveAwayDir != bigUDir) {
         LOG.debug("would be moved to target");
         if (target.bigU == null && target.smallU == null) {
           LOG.debug("which is possible");
-          // move it
-          target.bigU = player.bigU;
-          player.bigU = null;
+          if (!checkOnly) {
+            // move it
+            target.bigU = player.bigU;
+            player.bigU = null;
 
-          target.smallU = player.smallU;
-          player.smallU = null;
+            target.smallU = player.smallU;
+            player.smallU = null;
+          }
         } else {
           LOG.debug("which is not possible");
           return false;
@@ -149,22 +194,25 @@ public class Logic {
     if (player.smallU != null) {
       Direction smallUDir = player.smallU.dir;
       LOG.debug("player has small u open to %s", smallUDir);
-      if (dir != smallUDir) {
+      if (moveAwayDir != smallUDir) {
         LOG.debug("would be moved to target");
         if (target.smallU == null) {
           LOG.debug("which has no small u");
           boolean ok = true;
           if (target.bigU == null) {
             LOG.debug("and no big u, so it's possible");
-          } else if (target.bigU.dir.opposite() == dir) {
-            LOG.debug("and a big u opened to %s, so it's possible", dir);
+          } else if (target.bigU.dir.opposite() == enterDir) {
+            LOG.debug("and a big u opened to %s, so it's possible", enterDir);
           } else {
             ok = false;
           }
 
           if (ok) {
-            target.smallU = player.smallU;
-            player.smallU = null;
+            if (!checkOnly) {
+              // move it
+              target.smallU = player.smallU;
+              player.smallU = null;
+            }
           } else {
             return false;
           }
@@ -176,27 +224,35 @@ public class Logic {
         LOG.debug("would be left");
       }
     }
+    if (!checkOnly) {
+      if (target.switchVal != null) {
+        for (Row r : level.rows) {
+          for (Block c : r.cols) {
+            if (c.door != null)
+              c.door.open = c.door.num == target.switchVal.num;
+          }
+        }
+      }
+      if (target.type == PIXELSPOT) {
+        level.pixelate = !level.pixelate;
+      }
 
-    if (target.switchVal != null) {
-      level.rows.forEach(r ->
-      {
-        r.cols.forEach(c ->
-        {
-          if (c.door != null)
-            c.door.open = c.door.num == target.switchVal.num;
-        });
-      });
+      player.type = player.typeBefore;
+
+      target.typeBefore = target.type;
+      target.type = playerType;
+
+      changeTargetIfNeeded(target, fromPortalDir, toPortalDir);
     }
-    if (target.type == PIXELSPOT) {
-      level.pixelate = !level.pixelate;
-    }
-
-    player.type = player.typeBefore;
-
-    target.typeBefore = target.type;
-    target.type = playerType;
-
     return true;
+  }
+
+  void changeTargetIfNeeded(Block target, Direction fromPortalDir, Direction toPortalDir) {
+    if (fromPortalDir != null && toPortalDir != null && fromPortalDir != toPortalDir) {
+      changeDirs(target,
+              fromPortalDir == toPortalDir.opposite(),
+              fromPortalDir.getTurnIsClockwise(toPortalDir));
+    }
   }
 
   Entry<Block, int[]> getPlayerWithPos(Level level, Block.BlockType playerType) {

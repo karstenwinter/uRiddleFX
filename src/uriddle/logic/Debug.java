@@ -8,6 +8,7 @@ import java.util.logging.Level;
 public class Debug {
   private static final Level FINE = INFO;
   //Logger log;
+  public static boolean debug = true;
 
   public Debug(Class<?> cl) {
     //og = Logger.getLogger(cl.getName());
@@ -21,12 +22,16 @@ public class Debug {
     //if (log.isLoggable(FINE)) {
     //	log.log(FINE, String.format(s, args));
     //}
-    System.out.println(String.format(s, args));
+    if (debug) {
+      System.out.println(String.format(s, args));
+    }
   }
 
   public void debug(Object a) {
-    //log.log(FINE, String.valueOf(a));
-    System.out.println(a);
+    //log.log(FINE, String.valueOf(a))
+    if (debug) {
+      System.out.println(a);
+    }
   }
 
   public void e(Throwable t) {

@@ -49,7 +49,7 @@ public class LevelReader {
     int w = checkDivisible(textWidth, 1, 6, "All line lengths");
     int h = checkDivisible(lines.size() + 1, 2, 6, "Number of lines");
 
-    LOG.debug("w%s h%s", w, h);
+    //LOG.debug("w%s h%s", w, h);
     Level res = new Level(id, name);
     for (int y = 0; y < h; y++) {
       Row row = new Row();
@@ -59,7 +59,7 @@ public class LevelReader {
         int midY = 1 + y * 6 + 2;
         int midX = 1 + x * 6 + 2;
         char centerChar = lines.get(midY).charAt(midX);
-        LOG.debug("Block@y%sx%s, Char@y%sx%s: %s ", y, x, midY, midX, centerChar);
+        //LOG.debug("Block@y%sx%s, Char@y%sx%s: %s ", y, x, midY, midX, centerChar);
 
         char uDelta2 = lines.get(midY - 2).charAt(midX);
         char lDelta2 = lines.get(midY).charAt(midX - 2);
@@ -108,7 +108,7 @@ public class LevelReader {
             char d = lines.get(midY + delta).charAt(midX);
 
             Direction dir = getDir(u, r, d, l);
-            LOG.debug("Block u%sr%sd%sl%s Dir %s", u, r, d, l, dir);
+            //LOG.debug("Block u%sr%sd%sl%s Dir %s", u, r, d, l, dir);
 
             if (dir != null) {
               UType type = getUType(u, r, d, l);

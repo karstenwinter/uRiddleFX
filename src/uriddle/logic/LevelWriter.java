@@ -114,28 +114,28 @@ public class LevelWriter {
           ".....",
           ".....",
           ".....",
-          "#####"
+          "§§§§#"
   };
   static String[] portalTop = {
-          "#####",
+          "§§§§#",
           ".....",
           ".....",
           ".....",
           "....."
   };
   static String[] portalLeft = {
-          "#....",
-          "#....",
-          "#....",
-          "#....",
+          "§....",
+          "§....",
+          "§....",
+          "§....",
           "#...."
   };
   static String[] portalRight = {
           "....#",
-          "....#",
-          "....#",
-          "....#",
-          "....#"
+          "....§",
+          "....§",
+          "....§",
+          "....§"
   };
   // @formatter:on
 
@@ -186,7 +186,7 @@ public class LevelWriter {
                     : b.portal.dir == Direction.LEFT ? portalLeft
                     : b.portal.dir == Direction.RIGHT ? portalRight
                     : portalTop)[i];
-            res.append(c.replace("#", (b.portal.num + "")));
+            res.append(c.replace("§", (b.portal.num + "")));
           } else if (b.type == BlockType.DOOR && !b.door.open) {
             res.append(
                     (b.door.type == HORIZONTAL ? doorH : doorV)[i]
