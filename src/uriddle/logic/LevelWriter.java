@@ -117,7 +117,7 @@ public class LevelWriter {
           "§§§§#"
   };
   static String[] portalTop = {
-          "§§§§#",
+          "#§§§§",
           ".....",
           ".....",
           ".....",

@@ -15,7 +15,7 @@ public class Solver {
     return res;
   }
 
-  HashSet<String> visited = new HashSet<>();
+  HashSet<String> visited = new HashSet<String>();
   public static final int solved = -1;
 
   public Res solve(Level level, Res res, int maxIt) {
