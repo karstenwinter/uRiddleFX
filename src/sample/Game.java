@@ -60,7 +60,7 @@ class Game {
                         : c == 'o' ? 0xFFFFFF00
                         : 0xFFFFFF00;
         // @formatter:on
-        int sc = level.pixelate ? SCALE : SCALE - 1;
+        int sc = SCALE; // level.pixelate ? SCALE : SCALE - 1;
         for (int dx = 0; dx < sc; dx++) {
           for (int dy = 0; dy < sc; dy++) {
             int jitter = 0; //random.nextInt(5) + y % 5;

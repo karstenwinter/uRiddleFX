@@ -50,7 +50,7 @@ public class LevelWriter {
   static String[] gate = {
           "     ",
           " \\ / ",
-          "  X  ",
+          "  /  ",
           " / \\ ",
           "     "
   };

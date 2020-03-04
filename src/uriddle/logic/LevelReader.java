@@ -29,7 +29,7 @@ public class LevelReader {
     int indexOfColon = first.indexOf(": ");
     if (indexOfColon == -1) {
       throw new IllegalArgumentException(
-              "First line must have format <id: name>, was <" + first + ">");
+              "First line must have format <id: name>, was <" + first + ">" + level);
     }
     String id = first.substring(0, indexOfColon);
     String name = first.substring(indexOfColon + 2);
@@ -42,12 +42,12 @@ public class LevelReader {
       if (textWidth != line.length()) {
         throw new IllegalArgumentException(
                 "All lines must have the same length. Line <" + line
-                        + "> was not of length " + textWidth);
+                        + "> was not of length " + textWidth + level);
       }
     }
 
-    int w = checkDivisible(textWidth, 1, 6, "All line lengths");
-    int h = checkDivisible(lines.size() + 1, 2, 6, "Number of lines");
+    int w = checkDivisible(textWidth, 1, 6, "All line lengths" + level);
+    int h = checkDivisible(lines.size() + 1, 2, 6, "Number of lines" + level);
 
     //LOG.debug("w%s h%s", w, h);
     Level res = new Level(id, name);
