@@ -1,4 +1,4 @@
-# uRiddleFX
+# THE BOX CODE EDITOR
 
 Simple puzzle game, written in Java FX, to test the logic, before deploying it to the play store
 
@@ -10,7 +10,8 @@ Now with:
 - Portals
 - Pixelate button
 - Mirror Player
+- IO: Clipboard
 
 Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
 
-![](preview.png "Preview")
+![](editor.png "Preview")
