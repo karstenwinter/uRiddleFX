@@ -10,8 +10,16 @@ Now with:
 - Portals
 - Pixelate button
 - Mirror Player
-- IO: Clipboard
+
+EDITOR FEATURES:
+- Change Scaling
+- Level packs
+- Auto playtest
+- IO in files
+- Comes with samples
+- Easy file short cut buttons
+- Select / Delete / Duplicate Level
 
 Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
 
-![](editor.png "Preview")
+![](edv2.png "Preview")

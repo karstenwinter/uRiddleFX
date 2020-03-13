@@ -267,7 +267,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         Button dupFile = new Button("Duplicate");
         dupFile.setOnMouseClicked(event2 -> {
           File target = Paths.get(file.getParent().toString(),
-                  "dup-" + file.toFile().getName() + "-" + System.currentTimeMillis()).toFile();
+                  "dup-" + System.currentTimeMillis() + "-" + file.toFile().getName()).toFile();
           try {
             Files.copy(file, new FileOutputStream(target));
           } catch (IOException ex) {
