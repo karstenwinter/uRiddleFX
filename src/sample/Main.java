@@ -1,14 +1,12 @@
 package sample;
 
 import javafx.application.Application;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.Clipboard;
@@ -22,19 +20,26 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import uriddle.logic.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Block.BlockType.DEFAULT;
 import static uriddle.logic.Level.State.REACHED_EXIT;
-import static uriddle.logic.U.UType.OBSTACLE;
 
 public class Main extends Application implements EventHandler<KeyEvent> {
 
   private WritableImage writableImage;
-
-  private List<String> levels;
-  private Level level;
+  private List<Level> levels = new ArrayList<Level>();
+  private Level levelToPlay;
   private int index = 0;
   private Stage primaryStage;
   private ImageView imageView;
@@ -43,8 +48,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private VBox editorPane;
   private Button saveButton;
 
-  final String saveText = "Save to Clip";
-  private Level levelClone;
+  private final String saveText = "Save to Clip";
+  private Level levelToEdit;
+  private ScrollPane packList;
+  private ScrollPane levelList;
+  private Path currentFile;
+  private Path sampleLevels = Paths.get("p99-sample-levels.txt");
+  private FlowPane toolBar;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
@@ -63,20 +73,107 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     Background blackBg = new Background(new BackgroundFill(Paint.valueOf("#000000"), null, null));
     root.setBackground(blackBg);
-    primaryStage.setScene(new Scene(root, 1000, 900));
+    primaryStage.setScene(new Scene(root, 1100, 900));
     primaryStage.show();
 
-    levels = Game.getLevels();
-    level = Game.get(levels, index);
+
     // TextField keyboardInput = new TextField();
     //keyboardInput.setOnKeyReleased(this);
     //keyboardInput.setOpacity(0.0);
 
     // ToolBar toolBar = new ToolBar();
 
-    FlowPane toolBar = new FlowPane();
+    toolBar = new FlowPane();
     toolBar.setBackground(blackBg);
 
+    refreshToolbar();
+    // image = new Image(getClass().getResource("bg.png").openStream());
+
+    writableImage = new WritableImage(900, 900);
+
+    imageView = new ImageView(writableImage);
+    imageView.setSmooth(true);
+
+    //toolBar.setVgap(8);
+    //toolBar.setHgap(4);
+    toolBar.setPrefWrapLength(300);
+
+    /*ScrollPane scrollPane = new ScrollPane(toolBar);
+    scrollPane.setBackground(blackBg);
+    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);*/
+
+
+    toolBar.setMinWidth(310);
+    toolBar.setMinHeight(700);
+
+    editorPane = new VBox();
+    saveButton = buttonIo(saveText, true);
+
+    HBox editorArea = new HBox(
+            new VBox(
+                    label("Select"),
+                    toolBar),
+            new VBox(
+                    label("Edit"),
+                    editorPane,
+                    label("Test"),
+                    imageView)
+    );
+
+    packList = newIoList(true);
+
+    readFile(sampleLevels);
+
+    levelList = newIoList(false);
+
+    VBox manage = new VBox(
+            label("Quicksave"),
+            new HBox(
+                    saveButton,
+                    buttonIo("Load from Clip", false)
+            ),
+            label("Pack list"),
+            packList,
+            label("Level list"),
+            levelList
+    );
+    HBox belowTitle = new HBox(
+            manage,
+            editorArea
+    );
+    manage.setMinWidth(300);
+    HBox titleResize = new HBox(
+            label("Box Code Editor v2"),
+            createGap(),
+            label("Resize"),
+            buttonSize(-1, 0),
+            buttonSize(1, 0),
+            buttonSize(0, -1),
+            buttonSize(0, 1),
+            label(" scale"),
+            buttonScale(-1),
+            buttonScale(1),
+            label(" wasd: move, (r)eset, samples: (n)ext, (p)rev")
+    );
+    root.getChildren().add(
+            new VBox(
+                    titleResize,
+                    belowTitle
+            )
+    );
+    root.setOnKeyReleased(this);
+    if (levels.isEmpty()) {
+      levels = parseLevels(Game.getLevels());
+    }
+
+    select(levels.get(index));
+    fillEditorPane();
+    updateView();
+  }
+
+  private void refreshToolbar() {
+    toolBar.getChildren().clear();
     for (Block.BlockType value : Block.BlockType.values()) {
       Block block = new Block();
       block.type = value;
@@ -115,61 +212,262 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         addToolbarElement(toolBar, block);
       }
     }
-    // image = new Image(getClass().getResource("bg.png").openStream());
+  }
 
-    writableImage = new WritableImage(900, 900);
+  List<Level> parseLevels(List<String> levels) {
+    return levels.stream()
+            .map(LevelReader.instance::fromString)
+            .collect(Collectors.toList());
+  }
 
-    imageView = new ImageView(writableImage);
-    imageView.setSmooth(true);
+  ScrollPane newIoList(boolean pack) {
+    ScrollPane scrollPane = new ScrollPane();
+    scrollPane.setMaxHeight(pack ? 150 : 350);
+    VBox vBox = new VBox();
+    if (!pack) {
+      createLevelList(vBox, sampleLevels);
+    } else {
+      createPackList(vBox);
+    }
+    scrollPane.setContent(vBox);
+    return scrollPane;
+  }
 
-    //toolBar.setVgap(8);
-    //toolBar.setHgap(4);
-    toolBar.setPrefWrapLength(300);
+  void createPackList(VBox vBox) {
+    Button refresh = new Button("Refresh");
+    EventHandler<MouseEvent> mouseEventEventHandler = event -> {
+      vBox.getChildren().clear();
+      vBox.getChildren().add(refresh);
 
-    /*ScrollPane scrollPane = new ScrollPane(toolBar);
-    scrollPane.setBackground(blackBg);
-    scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
-    scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);*/
+      List<Path> files = listTextFiles();
+      if (files.isEmpty()) {
+        Stream<Level> levels = Stream.empty();
+        try {
+          levels = Game.getLevels().stream()
+                  .filter(x -> x.startsWith("i") || x.startsWith("l"))
+                  .map(LevelReader.instance::fromString);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        Path sampleLevels = this.sampleLevels;
 
+        writeLevelListTo(levels, sampleLevels);
+        files = listTextFiles();
+      }
+      for (Path file : files) {
+        HBox hBox = new HBox();
+        hBox.setUserData(file);
 
-    toolBar.setMinWidth(310);
-    toolBar.setMinHeight(700);
+        Button e = new Button("Load");
+        e.setOnMouseClicked(event2 -> {
+          VBox vBox1 = (VBox) levelList.getContent();
+          createLevelList(vBox1, file);
+        });
+        hBox.getChildren().add(e);
+        Button dupFile = new Button("Duplicate");
+        dupFile.setOnMouseClicked(event2 -> {
+          File target = Paths.get(file.getParent().toString(),
+                  "dup-" + file.toFile().getName() + "-" + System.currentTimeMillis()).toFile();
+          try {
+            Files.copy(file, new FileOutputStream(target));
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+          refresh.getOnMouseClicked().handle(null);
+        });
+        hBox.getChildren().add(dupFile);
 
-    editorPane = new VBox();
-    saveButton = buttonIo(saveText, true);
-    fillEditorPane();
-    HBox hBox = new HBox(
-            new VBox(
-                    label("Select"),
-                    toolBar),
-            new VBox(
-                    label("Edit"),
-                    editorPane,
-                    label("Test"),
-                    imageView)
+        Label textField = new Label(file.toFile().getName());
+        hBox.getChildren().add(textField);
+
+        vBox.getChildren().add(hBox);
+      }
+    };
+    refresh.setOnMouseClicked(mouseEventEventHandler);
+    mouseEventEventHandler.handle(null);
+  }
+
+  void createLevelList(VBox vBox, Path fileToRead) {
+    this.currentFile = fileToRead;
+
+    if (fileToRead != null) {
+      readFile(fileToRead);
+    }
+    vBox.getChildren().clear();
+
+    Button saveButton2 = new Button("Save Pack");
+    saveButton2.setOnMouseClicked(e -> {
+      levels = vBox.getChildren().stream()
+              .filter(x -> x.getUserData() != null)
+              .map(x -> ((Level) x.getUserData()).clone())
+              .collect(Collectors.toList());
+      saveCurrentPack();
+    });
+    vBox.getChildren().add(saveButton2);
+
+    int index = -1;
+    for (Level levelForInit : levels) {
+      index++;
+      //  if (levelStr.startsWith("i") || levelStr.startsWith("l")) {
+      HBox hBox = new HBox();
+      hBox.setUserData(levelForInit);
+
+      Button e = new Button("Select");
+      e.setOnMouseClicked(event -> {
+        Level userData = (Level) hBox.getUserData();
+        select(userData);
+        updateView();
+        fillEditorPane();
+      });
+      hBox.getChildren().add(e);
+     /* Button saveBtn = new Button("Save");
+      saveBtn.setOnMouseClicked(ev2 -> {
+        hBox.setUserData(level.clone());
+      });
+      // saveBtn.setDisable(!current);
+      hBox.getChildren().add(saveBtn);
+      */
+      Button delButton = new Button("Delete");
+      delButton.setOnMouseClicked(event -> {
+        if (levels.size() > 1) {
+          Level userData = (Level) hBox.getUserData();
+          levels = levels.stream()
+                  .filter(x -> !x.id.equals(userData.id))
+                  .collect(Collectors.toList());
+
+          saveCurrentPack();
+          createLevelList(vBox, this.currentFile);
+        }
+      });
+      hBox.getChildren().add(delButton);
+
+      Button dupFile = new Button("Duplicate");
+      // saveBtn.setDisable(!current);
+      final int indexNow = index;
+      dupFile.setOnMouseClicked(event2 -> {
+        Level userData = (Level) hBox.getUserData();
+        Level clone = userData.clone();
+        clone.id = "dup-" + clone.id + "-" + System.currentTimeMillis();
+        levels.add(indexNow, clone);
+        saveCurrentPack();
+        createLevelList((VBox) levelList.getContent(), this.currentFile);
+      });
+      hBox.getChildren().add(dupFile);
+
+      TextField textFieldID = new TextField(levelForInit.id);
+      textFieldID.setMaxWidth(60);
+      textFieldID.setOnKeyReleased(ev -> {
+        Level userData = (Level) hBox.getUserData();
+        userData.id = textFieldID.getText();
+      });
+      //  boolean current = level.id == l.id;
+      //  textFieldID.setEditable(current);
+      hBox.getChildren().add(textFieldID);
+
+      TextField textFieldNMW = new TextField(levelForInit.name);
+      hBox.getChildren().add(textFieldNMW);
+      textFieldNMW.setOnKeyReleased(ev -> {
+        Level userData = (Level) hBox.getUserData();
+        userData.name = textFieldNMW.getText();
+      });
+
+      vBox.getChildren().add(hBox);
+    }
+    vBox.getChildren().add(createGap());
+  }
+
+  void select(Level userData) {
+    levelToEdit = userData;
+    levelToPlay = userData.clone();
+  }
+
+  private Label createGap() {
+    return new Label("  ");
+  }
+
+/*  void updateCurrentLevelInList() {
+    levels = levels.stream()
+            .map(x -> x.id.equals(level.id) ? level.clone() : x)
+            .collect(Collectors.toList());
+  }*/
+
+  void writeLevelListTo(Stream<Level> levels, Path file) {
+    try {
+      /*Files.copy(
+              Game.getResourceAsStream(),
+              Paths.get("p99-sample-levels.txt"),
+              StandardCopyOption.REPLACE_EXISTING);*/
+
+      String str = levels
+              .map(Level::toString)
+              .reduce((a, b) -> a + "\n" + b)
+              .get() + "\nEND";
+
+      str = str.replaceAll("\r", "");
+      if (str.endsWith("\n\n")) {
+        str = str.substring(0, str.length() - 2);
+      }
+      Files.write(
+              file,
+              Arrays.asList(str)
+      );
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  void saveCurrentPack() {
+    writeLevelListTo(
+            levels.stream(),
+            this.currentFile
     );
-    root.getChildren().add(
-            new VBox(
-                    new HBox(
-                            label("Box Code Editor v1"),
-                            new Label("  "),
-                            label("Manage"),
-                            saveButton,
-                            buttonIo("Load from Clip", false),
-                            new Label("  "),
-                            label("Resize"),
-                            buttonSize(-1, 0),
-                            buttonSize(1, 0),
-                            buttonSize(0, -1),
-                            buttonSize(0, 1),
-                            label(" wasd; move, (r)eset, samples: (n)ext, (p)rev")
-                    ),
-                    hBox
-            )
-    );
-    root.setOnKeyReleased(this);
+  }
 
-    updateView();
+  void readFile(Path fileToRead) {
+    try {
+      levels = parseLevels(Game.getLevels(Files.newBufferedReader(fileToRead)));
+      System.out.println(levels.size() + " levels read from " +
+              fileToRead + " (length: " + fileToRead.toFile().length() + ")");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  List<Path> listTextFiles() {
+    List<Path> lines = Arrays.asList();
+    try {
+      lines = Files.list(Paths.get("."))
+              .filter(x -> x.toFile().getName().endsWith(".txt"))
+              .sorted(Comparator.comparing(a -> a.toFile().getName()))
+              .collect(Collectors.toList());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return lines;
+  }
+
+
+  private Node buttonScale(int delta) {
+    String text = delta > 0 ? "+" // ""Increase Height"
+            : "-";
+
+    Button button = new Button(text);
+
+    button.setOnMouseClicked(e -> {
+      if (Game.SCALE > 1 && delta < 0) {
+        Game.SCALE--;
+      }
+      if (Game.SCALE < 20 && delta > 0) {
+        Game.SCALE++;
+      }
+
+
+      refreshToolbar();
+      select(levelToEdit);
+      updateView();
+      fillEditorPane();
+    });
+    return button;
   }
 
   Node buttonSize(int dx, int dy) {
@@ -187,25 +485,25 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       e2.type = BOUNDS;
       if (dy > 0) {
         Row e1 = new Row();
-        int width = levelClone.rows.get(0).cols.size();
+        int width = levelToEdit.rows.get(0).cols.size();
         for (int i = 0; i < width; i++) {
           e1.cols.add(e2.clone());
         }
-        levelClone.rows.add(e1);
-      } else if (dy < 0 && levelClone.rows.size() > 1) {
-        levelClone.rows.remove(levelClone.rows.size() - 1);
+        levelToEdit.rows.add(e1);
+      } else if (dy < 0 && levelToEdit.rows.size() > 1) {
+        levelToEdit.rows.remove(levelToEdit.rows.size() - 1);
       }
       if (dx > 0) {
-        for (Row r : levelClone.rows) {
+        for (Row r : levelToEdit.rows) {
           r.cols.add(e2.clone());
         }
-      } else if (dx < 0 && levelClone.rows.get(0).cols.size() > 1) {
-        for (Row r : levelClone.rows) {
+      } else if (dx < 0 && levelToEdit.rows.get(0).cols.size() > 1) {
+        for (Row r : levelToEdit.rows) {
           r.cols.remove(r.cols.size() - 1);
         }
       }
 
-      level = levelClone;
+      select(levelToEdit);
       updateView();
       fillEditorPane();
     });
@@ -218,14 +516,14 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     button.setOnMouseClicked(e -> {
       if (saveMode) {
         ClipboardContent content = new ClipboardContent();
-        content.putString(level.toString());
+        content.putString(levelToPlay.toString());
         clipboard.setContent(content);
         button.setText("Saved!");
 
       } else {
         if (clipboard.hasString()) {
           String str = clipboard.getString();
-          level = LevelReader.instance.fromString(str);
+          select(LevelReader.instance.fromString(str));
           updateView();
           fillEditorPane();
         }
@@ -246,16 +544,15 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   void fillEditorPane() {
     int y = -1;
     editorPane.getChildren().clear();
-    levelClone = this.level.clone();
-    for (Row r : levelClone.rows) {
+    for (Row r : levelToEdit.rows) {
       y++;
       HBox hbox = new HBox();
       int x = -1;
       for (Block block : r.cols) {
         x++;
         final int xNow = x;
-        WritableImage eImg = new WritableImage(70, 70);
-        Game.drawToBitmap(new Level("", "", new Row(block)), eImg);
+        WritableImage eImg = new WritableImage(7 * Game.SCALE, 7 * Game.SCALE);
+        Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false);
         final ImageView img = new ImageView(eImg);
         // img.setOnKeyReleased(this);
 
@@ -266,10 +563,10 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         img.setOnMouseExited(e -> img.setOpacity(0.8));
 
         img.setOnMouseClicked((MouseEvent event) -> {
-          levelClone.rows.get(yNow).cols.set(xNow, inputBlock.clone());
-          Game.drawToBitmap(new Level("", "", new Row(inputBlock)), eImg);
+          levelToEdit.rows.get(yNow).cols.set(xNow, inputBlock.clone());
+          Game.drawToBitmap(eImg, LevelWriter.instance.toString(inputBlock), false);
           img.setImage(eImg);
-          level = levelClone.clone();
+          levelToPlay = levelToEdit.clone();
           updateView();
           saveButton.setText(saveText);
         });
@@ -282,8 +579,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   void addToolbarElement(FlowPane toolBar, Block block0) {
     Block block = block0.clone();
 
-    WritableImage eImg = new WritableImage(70, 70);
-    Game.drawToBitmap(new Level("", "", new Row(block)), eImg);
+    WritableImage eImg = new WritableImage(7 * Game.SCALE, 7 * Game.SCALE);
+    Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false);
     ImageView e = new ImageView(eImg);
     // e.setOnKeyReleased(this);
 
@@ -310,7 +607,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   }
 
   private void updateView() {
-    primaryStage.setTitle("uRiddle level " + level.id + " (" + level.name + ")");
+    primaryStage.setTitle("uRiddle level " + levelToPlay.id + " (" + levelToPlay.name + ")");
     /*writableImage
             .getPixelWriter()
             .setPixels(
@@ -328,7 +625,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     imageView.setImage(writableImage);
 
-    Game.drawToBitmap(level, writableImage);
+    Game.drawToBitmap(levelToPlay, writableImage);
   }
 
   @Override
@@ -342,7 +639,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       if (read.equals("n")) {
         index++;
       }
-      level = Game.get(levels, index);
+      select(levels.get(index));
       fillEditorPane();
       updateView();
     }
@@ -351,19 +648,19 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       if (index < 0) {
         index = levels.size() - 1;
       }
-      level = Game.get(levels, index);
+      select(levels.get(index));
       fillEditorPane();
       updateView();
     }
 
     Direction d = Game.getDir(read);
     if (d != null) {
-      Level.State go = level.go(d);
+      Level.State go = levelToPlay.go(d);
       //System.out.println(level.toString());
       if (go == REACHED_EXIT) {
         System.out.println("You reached the exit! Well done!");
         index++;
-        level = Game.get(levels, index);
+        select(levels.get(index));
       }
       updateView();
     }

@@ -8,14 +8,19 @@ import static uriddle.logic.Direction.*;
 import static uriddle.logic.Level.State.*;
 
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 import uriddle.logic.Level.*;
 
 class Game {
-  public static void drawToBitmap(Level level, WritableImage bitmap) {
+  static void drawToBitmap(Level level, WritableImage bitmap) {
     String string = level.toString();
+    drawToBitmap(bitmap, string, level.pixelate);
+  }
+
+  static int SCALE = 10;
+
+  static void drawToBitmap(WritableImage bitmap, String string, boolean isPix) {
     int y = -1;
     List<String> split = new ArrayList<String>(
             Arrays.asList(string.split("\n")));
@@ -29,21 +34,20 @@ class Game {
         /*if (bmp.getWidth() != w * SCALE || bmp.getHeight() != h * SCALE) {
             bmp = Bitmap.createBitmap(w * SCALE, h * SCALE, Config.ARGB_4444);
         }*/
-    int SCALE = 10;
     // Random random = new Random();
 
     PixelWriter pixelWriter = bitmap.getPixelWriter();
     String line0 = split.get(0);
     for (String line : split) {
       y++;
-      if (level.pixelate && y % 2 == 0) {
+      if (isPix && y % 2 == 0) {
         line = line0;
       }
       line0 = line;
-      char c = line.charAt(0);
+      //  c = line.charAt(0);
       for (int x = 0; x < line.length(); x++) {
-        c = line.charAt(x);
-        if (level.pixelate && x % 2 == 0) {
+        char c = line.charAt(x);
+        if (isPix && x % 2 == 0) {
           c = line.charAt(Math.max(0, x - (y % 2)));
         }
         // @formatter:off
@@ -135,7 +139,7 @@ class Game {
     String name = null;
     StringBuilder entry = new StringBuilder();
     try {
-      while ((line = rd.readLine()) != null) {
+      while ((line = rd.readLine()) != null && !"".equals(line)) {
         if (line.startsWith(" ")) {
           entry.append(line).append("\n");
         } else {
@@ -160,9 +164,16 @@ class Game {
   }
 
   public static List<String> getLevels() throws Exception {
-
-    InputStream in = Game.class.getResourceAsStream("/uriddle/logic/levels.txt");
-    BufferedReader rd = new BufferedReader(new InputStreamReader(in));
+    BufferedReader rd = getBufferedReaderForResourceLevels();
     return getLevels(rd);
+  }
+
+  static BufferedReader getBufferedReaderForResourceLevels() {
+    InputStream in = getResourceAsStream();
+    return new BufferedReader(new InputStreamReader(in));
+  }
+
+  static InputStream getResourceAsStream() {
+    return Game.class.getResourceAsStream("/uriddle/logic/levels.txt");
   }
 }
