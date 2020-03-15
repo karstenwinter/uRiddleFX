@@ -47,43 +47,51 @@ public class LevelWriter {
   public static final int HEADER_LINE = 0;
 
   // @formatter:off
+  static String[] passWay = {
+          "## ##",
+          "## ##",
+          "     ",
+          "## ##",
+          "## ##"
+  };
+
   static String[] gate = {
           "     ",
           " \\ / ",
-          "  /  ",
+          "  X  ",
           " / \\ ",
           "     "
   };
 
   static String[] doorH = {
-          " XXX ",
-          "  X  ",
-          "  X  ",
-          "  X  ",
-          " XXX "
+          " $$$ ",
+          "  $  ",
+          "  $  ",
+          "  $  ",
+          " $$$ "
   };
 
   static String[] doorV = {
           "     ",
-          "X   X",
-          "XXXXX",
-          "X   X",
+          "$   $",
+          "$$$$$",
+          "$   $",
           "     "
   };
 
   static String[] switch1 = {
           "     ",
-          "  X  ",
-          " XXX ",
+          "  $  ",
+          " $$$ ",
           "     ",
           "     "
   };
 
   static String[] switch2 = {
           "     ",
-          "  X  ",
-          "  XX ",
-          "  X  ",
+          "  $  ",
+          "  $$ ",
+          "  $  ",
           "     "
   };
 
@@ -102,6 +110,61 @@ public class LevelWriter {
           "  v  ",
           "     "
   };
+  static String[][] oneWayNormal = {
+          {
+                  "     ",
+                  "  ^  ",
+                  " ^^^ ",
+                  " ^ ^ ",
+                  "^^ ^^"
+          }, {
+          ">    ",
+          ">>>> ",
+          "  >>>",
+          ">>>> ",
+          ">    "
+  }, {
+          "vv vv",
+          " v v ",
+          " vvv ",
+          "  v  ",
+          "     "
+  }, {
+          "    <",
+          " <<<<",
+          "<<<  ",
+          " <<<<",
+          "    <"
+  }
+  };
+  static String[][] oneWayOnly = {
+          {
+                  "     ",
+                  "  A  ",
+                  " AAA ",
+                  " A A ",
+                  "AA AA"
+          }, {
+          ")    ",
+          ")))) ",
+          "  )))",
+          ")))) ",
+          ")    "
+  }, {
+          "VV VV",
+          " V V ",
+          " VVV ",
+          "  V  ",
+          "     "
+  }, {
+          "    (",
+          " ((((",
+          "(((  ",
+          " ((((",
+          "    ("
+  }
+  };
+
   static String[] bounds = {
           ".....",
           ".....",
@@ -181,6 +244,17 @@ public class LevelWriter {
             res.append(bounds[i]);
           } else if (b.type == BlockType.EXIT) {
             res.append(exit[i]);
+          } else if (b.type == BlockType.ONEWAY) {
+            Direction dir = b.oneWay.dir;
+            //assert (dir != null);
+            int id = dir.ordinal();
+            //  System.out.println(" " + b.oneWay + " => " + id);
+            String[] strings = (b.oneWay.type == OneWay.OneWayType.NOT_REVERSE
+                    ? oneWayNormal
+                    : oneWayOnly)[id];
+            String c = strings[i];
+
+            res.append(c);
           } else if (b.type == BlockType.PORTAL) {
             String c = (b.portal.dir == Direction.BOTTOM ? portalBottom
                     : b.portal.dir == Direction.LEFT ? portalLeft
@@ -188,11 +262,11 @@ public class LevelWriter {
                     : portalTop)[i];
             res.append(c.replace("§", (b.portal.num + "")));
           } else if (b.type == BlockType.DOOR && !b.door.open) {
-            res.append(
-                    (b.door.type == HORIZONTAL ? doorH : doorV)[i]
-            );
+            String str = (b.door.type == HORIZONTAL ? doorH : doorV)[i];
+            res.append(str.replace('$', b.door.num == 1 ? 'd' : 'D'));
           } else if (b.type == BlockType.SWITCH) {
-            res.append((b.switchVal.num == 1 ? switch1 : switch2)[i]);
+            String str = (b.switchVal.num == 1 ? switch1 : switch2)[i];
+            res.append(str.replace('$', b.switchVal.num == 1 ? 's' : 'S'));
           } else {
             appendTimes(res, 5, " ");
           }

@@ -12,21 +12,18 @@ public class Block {
     ONEWAY
   }
 
-  public BlockType type;
+  public BlockType type = BlockType.DEFAULT;
   public BlockType typeBefore = BlockType.DEFAULT;
   public U bigU;
   public U smallU;
   public Door door;
   public Switch switchVal;
   public Portal portal;
-
-  public Block() {
-    this.type = BlockType.DEFAULT;
-  }
+  public OneWay oneWay;
 
   @Override
   public String toString() {
-    return this.type + " " + bigU + ", " + smallU + ", " + door + ", " + switchVal;
+    return this.type + " " + bigU + ", " + smallU + ", " + door + ", " + switchVal + ", " + portal + ", " + oneWay;
   }
 
   public Block clone() {
@@ -38,6 +35,7 @@ public class Block {
     b.door = door != null ? door.clone() : null;
     b.switchVal = switchVal;
     b.portal = portal;
+    b.oneWay = oneWay;
     return b;
   }
 }

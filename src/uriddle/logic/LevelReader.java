@@ -61,6 +61,11 @@ public class LevelReader {
         char centerChar = lines.get(midY).charAt(midX);
         //LOG.debug("Block@y%sx%s, Char@y%sx%s: %s ", y, x, midY, midX, centerChar);
 
+        char uDelta1 = lines.get(midY - 1).charAt(midX);
+        char lDelta1 = lines.get(midY).charAt(midX - 1);
+        char rDelta1 = lines.get(midY).charAt(midX + 1);
+        char dDelta1 = lines.get(midY + 1).charAt(midX);
+
         char uDelta2 = lines.get(midY - 2).charAt(midX);
         char lDelta2 = lines.get(midY).charAt(midX - 2);
         char rDelta2 = lines.get(midY).charAt(midX + 2);
@@ -97,27 +102,28 @@ public class LevelReader {
           block.type = PIXELSPOT;
         } else if (centerChar == '<' || centerChar == '>' || centerChar == 'v' || centerChar == '^') {
           block.type = ONEWAY;
+          block.oneWay = new OneWay(OneWay.OneWayType.NOT_REVERSE,
+                  getDir(uDelta1, rDelta1, dDelta1, lDelta1).opposite());
+        } else if (centerChar == '(' || centerChar == ')' || centerChar == 'V' || centerChar == 'A') {
+          block.type = ONEWAY;
+          block.oneWay = new OneWay(OneWay.OneWayType.ONLY_DIRECTION,
+                  getDir(uDelta1, rDelta1, dDelta1, lDelta1).opposite());
         } else if (centerChar == '1' || centerChar == '2' || centerChar == '3' || centerChar == '4') {
           block.type = RYTHM;
         }
-        if (block.type != PORTAL) {
-          for (int delta = 1; delta < 3; delta++) {
-            char u = lines.get(midY - delta).charAt(midX);
-            char l = lines.get(midY).charAt(midX - delta);
-            char r = lines.get(midY).charAt(midX + delta);
-            char d = lines.get(midY + delta).charAt(midX);
 
-            Direction dir = getDir(u, r, d, l);
-            //LOG.debug("Block u%sr%sd%sl%s Dir %s", u, r, d, l, dir);
+        if (block.type == DEFAULT) {
 
-            if (dir != null) {
-              UType type = getUType(u, r, d, l);
-              if (delta == 1) {
-                block.smallU = new U(type, dir);
-              } else {
-                block.bigU = new U(type, dir);
-              }
-            }
+          Direction dirDelta1 = getDir(uDelta1, rDelta1, dDelta1, lDelta1);
+          if (dirDelta1 != null) {
+            UType type = getUType(uDelta1, rDelta1, dDelta1, lDelta1);
+            block.smallU = new U(type, dirDelta1);
+          }
+
+          Direction dirDelta2 = getDir(uDelta2, rDelta2, dDelta2, lDelta2);
+          if (dirDelta2 != null) {
+            UType type = getUType(uDelta2, rDelta2, dDelta2, lDelta2);
+            block.bigU = new U(type, dirDelta2);
           }
         }
 
@@ -137,11 +143,13 @@ public class LevelReader {
   }
 
   public Direction getDir(char u, char r, char d, char l) {
-    return !isBlock(u) && isBlock(r) && isBlock(d) && isBlock(l) ? TOP :
+    Direction direction = !isBlock(u) && isBlock(r) && isBlock(d) && isBlock(l) ? TOP :
             isBlock(u) && !isBlock(r) && isBlock(d) && isBlock(l) ? RIGHT :
                     isBlock(u) && isBlock(r) && !isBlock(d) && isBlock(l) ? BOTTOM :
                             isBlock(u) && isBlock(r) && isBlock(d) && !isBlock(l) ? LEFT :
                                     null;
+    // assert (direction != null);
+    return direction;
   }
 
   public boolean isBlock(char c) {

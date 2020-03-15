@@ -57,11 +57,23 @@ class Game {
                         : c == '#' ? 0xFFFF0000
                         : c == '.' ? 0xFF333333
                         : c == 'P' ? 0xFF330000
-                        : c == 'X' ? 0xFF330033
-                        : c == '1' ? 0xFF885500
-                        : c == '2' ? 0xFF1111AA
+                        : c == 'X' ? 0xFFFF3333
+                        : c == 'd' ? 0xFF33FF33
+                        : c == 'D' ? 0xFFFF3333
+                        : c == 's' ? 0xFF33FF33
+                        : c == 'S' ? 0xFFFF3333
+                        : c == '1' ? 0xFFFFA500
+                        : c == '2' ? 0xFF3377CC
                         : c == 'q' ? 0xFF00FFFF
                         : c == 'o' ? 0xFFFFFF00
+                        : c == 'v' ? 0xFF3F3F00
+                        : c == '^' ? 0xFF3F3F00
+                        : c == '<' ? 0xFF3F3F00
+                        : c == '>' ? 0xFF3F3F00
+                        : c == 'V' ? 0xFFAF3F00
+                        : c == 'A' ? 0xFFAF3F00
+                        : c == '(' ? 0xFFAF3F00
+                        : c == ')' ? 0xFFAF3F00
                         : 0xFFFFFF00;
         // @formatter:on
         int sc = SCALE; // level.pixelate ? SCALE : SCALE - 1;

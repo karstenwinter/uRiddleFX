@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -48,13 +49,16 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private VBox editorPane;
   private Button saveButton;
 
-  private final String saveText = "Save to Clip";
+  final String saveText = "Save to Clip";
+  final String try_solve = "Try Solve";
+
   private Level levelToEdit;
   private ScrollPane packList;
   private ScrollPane levelList;
   private Path currentFile;
   private Path sampleLevels = Paths.get("p99-sample-levels.txt");
   private FlowPane toolBar;
+  private Button solveButton;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
@@ -104,7 +108,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);*/
 
 
-    toolBar.setMinWidth(310);
+    toolBar.setMinWidth(400);
     toolBar.setMinHeight(700);
 
     editorPane = new VBox();
@@ -143,8 +147,9 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             editorArea
     );
     manage.setMinWidth(300);
+    solveButton = new Button(); // createSolveButton();
     HBox titleResize = new HBox(
-            label("Box Code Editor v2"),
+            label("Box Code Editor v3"),
             createGap(),
             label("Resize"),
             buttonSize(-1, 0),
@@ -154,7 +159,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             label(" scale"),
             buttonScale(-1),
             buttonScale(1),
-            label(" wasd: move, (r)eset, samples: (n)ext, (p)rev")
+            label(" wasd: move, (r)eset, samples: (n)ext, (p)rev") //,
+            //solveButton
     );
     root.getChildren().add(
             new VBox(
@@ -172,12 +178,44 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     updateView();
   }
 
+  Button createSolveButton() {
+    Button solve = new Button(try_solve);
+    solve.setOnMouseClicked(e -> {
+
+      Solver solver = new Solver();
+      //solver.levelConsumer = x -> {
+        /*Platform.runLater(() -> {
+          try {
+            Thread.sleep(10);
+          } catch (InterruptedException ex) {
+            ex.printStackTrace();
+          }
+          Game.drawToBitmap(x, writableImage);
+          imageView.setImage(writableImage);
+        });*/
+      //    System.out.println(x);
+      //  };
+      solver.verbose = true;
+      Res res = solver.solve(levelToEdit);
+      solve.setText(res.solved ? "Solved, steps: " + res.iterations : "Not solved within " + solver.maxIt);
+    });
+    return solve;
+  }
+
   private void refreshToolbar() {
     toolBar.getChildren().clear();
     for (Block.BlockType value : Block.BlockType.values()) {
       Block block = new Block();
       block.type = value;
-      if (value == DOOR) {
+
+      if (value == ONEWAY) {
+        for (OneWay.OneWayType type : OneWay.OneWayType.values()) {
+          for (Direction d : Direction.values()) {
+            block.oneWay = new OneWay(type, d);
+            addToolbarElement(toolBar, block);
+          }
+        }
+      } else if (value == DOOR) {
         for (Door.DoorType d : Door.DoorType.values()) {
           block.door = new Door(d, 1);
           addToolbarElement(toolBar, block);
@@ -240,7 +278,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       vBox.getChildren().add(refresh);
 
       List<Path> files = listTextFiles();
-      if (files.isEmpty()) {
+      if (files.stream().noneMatch(x -> x.toFile().getName().equals(sampleLevels.toFile().getName()))) {
         Stream<Level> levels = Stream.empty();
         try {
           levels = Game.getLevels().stream()
@@ -568,6 +606,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           img.setImage(eImg);
           levelToPlay = levelToEdit.clone();
           updateView();
+          solveButton.setText(try_solve);
           saveButton.setText(saveText);
         });
         hbox.getChildren().add(img);
@@ -625,6 +664,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     imageView.setImage(writableImage);
 
+    //  System.out.println(levelToPlay.toString());
     Game.drawToBitmap(levelToPlay, writableImage);
   }
 
@@ -635,14 +675,19 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     //writableImage.getPixelWriter().setArgb(x, y, 0xFF000000);
     //System.out.println(event);
     String read = event.getText().toLowerCase();
-    if (read.equals("n") || read.equals("r")) {
-      if (read.equals("n")) {
-        index++;
-      }
+    if (read.equals("r")) {
+      select(levelToEdit);
+      fillEditorPane();
+      updateView();
+    }
+
+    if (read.equals("n")) {
+      index++;
       select(levels.get(index));
       fillEditorPane();
       updateView();
     }
+
     if (read.equals("p")) {
       index--;
       if (index < 0) {
@@ -659,8 +704,9 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       //System.out.println(level.toString());
       if (go == REACHED_EXIT) {
         System.out.println("You reached the exit! Well done!");
-        index++;
-        select(levels.get(index));
+        solveButton.setText("You solved it :)");
+        //index++;
+        //select(levels.get(index));
       }
       updateView();
     }

@@ -8,6 +8,7 @@ import java.util.HashSet;
 public class Solver {
   public int maxIt = 50;
   private Direction[] dirs = Direction.values();
+  public boolean verbose;
 
   public Res solve(Level level) {
     Res res = new Res();
@@ -34,7 +35,10 @@ public class Solver {
       if (clone == null) {
         clone = level.clone();
       }
-      Level.State s = clone.go(d);
+      Level.State s = Logic.instance.movePlayer(clone, d, Block.BlockType.PLAYER);
+      if (verbose) {
+        System.out.println(clone);
+      }
       switch (s) {
         case USED_PORTAL:
           res.usedPortal = true;
