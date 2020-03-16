@@ -100,7 +100,7 @@ public class Logic {
           }
         }*/
         boolean moved = doMove(dir, playerBlock, targetBlock, level, playerType, false,
-                fromPortalDir, toPortalDir);
+                fromPortalDir, toPortalDir, level.counter);
         if (moved) {
           res = targetWasPortal ? USED_PORTAL : MOVED;
 
@@ -164,7 +164,7 @@ public class Logic {
   }
 
   boolean doMove(Direction inputDir, Block player, Block target, Level level, Block.BlockType playerType,
-                 boolean checkOnly, Direction fromPortalDir, Direction toPortalDir) {
+                 boolean checkOnly, Direction fromPortalDir, Direction toPortalDir, int counter) {
     Direction enterDir = toPortalDir == null ? inputDir : toPortalDir;
     Direction moveAwayDir = fromPortalDir == null ? inputDir : fromPortalDir.opposite();
 
@@ -187,6 +187,14 @@ public class Logic {
         return false;
       }
     }
+
+    if (target.type == RYTHM &&target.num == counter) {
+      return false;
+    }
+
+    //if (target.type == PASSWAY &&player.bigU != null && player.bigU.dir.opposite()!=moveAwayDir) {
+    //  return false;
+    //}
 
     if (target.smallU != null && target.smallU.dir.opposite() != enterDir) {
       LOG.debug("cannot go into small u");
