@@ -607,7 +607,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
         x++;
         final int xNow = x;
         WritableImage eImg = new WritableImage(7 * Game.SCALE, 7 * Game.SCALE);
-        Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false);
+        Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false, null);
         final ImageView img = new ImageView(eImg);
         // img.setOnKeyReleased(this);
 
@@ -619,7 +619,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
         img.setOnMouseClicked((MouseEvent event) -> {
           levelToEdit.rows.get(yNow).cols.set(xNow, inputBlock.clone());
-          Game.drawToBitmap(eImg, LevelWriter.instance.toString(inputBlock), false);
+          Game.drawToBitmap(eImg, LevelWriter.instance.toString(inputBlock), false, null);
           img.setImage(eImg);
           levelToPlay = levelToEdit.clone();
           updateView();
@@ -636,7 +636,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     Block block = block0.clone();
 
     WritableImage eImg = new WritableImage(7 * Game.SCALE, 7 * Game.SCALE);
-    Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false);
+    Game.drawToBitmap(eImg, LevelWriter.instance.toString(block), false, null);
     ImageView e = new ImageView(eImg);
     // e.setOnKeyReleased(this);
 

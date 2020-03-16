@@ -16,7 +16,7 @@ public class Level {
   public String name;
   public final List<Row> rows = new ArrayList<Row>();
   public boolean pixelate = false;
-  public int counter;
+  public int counter = 1;
 
   public Level(String id, String name, Row... rows) {
     this.name = name;

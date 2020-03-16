@@ -20,9 +20,12 @@ public class Logic {
     State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER);
 
     int comp = Integer.compare(state.ordinal(), state2.ordinal());
-    level.counter += 1;
-    if (level.counter > 4) {
-      level.counter = 0;
+    if (state != CANNOT_MOVE) {
+      level.counter += 1;
+      if (level.counter > 4) {
+        level.counter = 1;
+      }
+      System.out.println("Counter " + level.counter);
     }
     if (comp < 0) {
       return state;

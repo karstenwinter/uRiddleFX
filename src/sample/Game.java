@@ -15,12 +15,12 @@ import uriddle.logic.Level.*;
 class Game {
   static void drawToBitmap(Level level, WritableImage bitmap) {
     String string = level.toString();
-    drawToBitmap(bitmap, string, level.pixelate);
+    drawToBitmap(bitmap, string, level.pixelate, level.counter);
   }
 
   static int SCALE = 10;
 
-  static void drawToBitmap(WritableImage bitmap, String string, boolean isPix) {
+  static void drawToBitmap(WritableImage bitmap, String string, boolean isPix, Integer counter) {
     int y = -1;
     List<String> split = new ArrayList<String>(
             Arrays.asList(string.split("\n")));
@@ -82,6 +82,9 @@ class Game {
                         : c == ')' ? 0xFFAF3F00
                         : 0xFFFFFF00;
         // @formatter:on
+        if (counter != null && "3456".contains(c + "") && Integer.parseInt(c + "") - 2 != counter) {
+          color = 0xFF000000;
+        }
         int sc = SCALE; // level.pixelate ? SCALE : SCALE - 1;
         for (int dx = 0; dx < sc; dx++) {
           for (int dy = 0; dy < sc; dy++) {
