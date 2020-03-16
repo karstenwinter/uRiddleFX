@@ -152,10 +152,12 @@ public class Generator {
           block.type = GATE;
         } else if (x == p2x && y == p2y) {
           block.type = PORTAL;
-          block.portal = new Portal(2, p2Dir);
+          block.portal = new Portal(p2Dir);
+          block.num = 2;
         } else if (x == p1x && y == p1y) {
           block.type = PORTAL;
-          block.portal = new Portal(1, p1Dir);
+          block.portal = new Portal(p1Dir);
+          block.num = 1;
         } else if (x == 0 || x == w - 1 || y == 0 || y == h - 1) {
           block.type = BOUNDS;
         }

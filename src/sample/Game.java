@@ -64,6 +64,12 @@ class Game {
                         : c == 'S' ? 0xFFFF3333
                         : c == '1' ? 0xFFFFA500
                         : c == '2' ? 0xFF3377CC
+
+                        : c == '3' ? 0xFF33CC33
+                        : c == '4' ? 0xFFCC33CC
+                        : c == '5' ? 0xFFCCCC33
+                        : c == '6' ? 0xFF33CCCC
+
                         : c == 'q' ? 0xFF00FFFF
                         : c == 'o' ? 0xFFFFFF00
                         : c == 'v' ? 0xFF3F3F00

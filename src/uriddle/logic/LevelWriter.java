@@ -255,18 +255,23 @@ public class LevelWriter {
             String c = strings[i];
 
             res.append(c);
+          } else if (b.type == BlockType.RYTHM) {
+            appendTimes(res, 5, (2+b.num) + "");
+          } else if (b.type == BlockType.PASSWAY) {
+            String str = passWay[i];
+            res.append(str);
           } else if (b.type == BlockType.PORTAL) {
             String c = (b.portal.dir == Direction.BOTTOM ? portalBottom
                     : b.portal.dir == Direction.LEFT ? portalLeft
                     : b.portal.dir == Direction.RIGHT ? portalRight
                     : portalTop)[i];
-            res.append(c.replace("§", (b.portal.num + "")));
+            res.append(c.replace("§", (b.num + "")));
           } else if (b.type == BlockType.DOOR && !b.door.open) {
             String str = (b.door.type == HORIZONTAL ? doorH : doorV)[i];
-            res.append(str.replace('$', b.door.num == 1 ? 'd' : 'D'));
+            res.append(str.replace('$', b.num == 1 ? 'd' : 'D'));
           } else if (b.type == BlockType.SWITCH) {
-            String str = (b.switchVal.num == 1 ? switch1 : switch2)[i];
-            res.append(str.replace('$', b.switchVal.num == 1 ? 's' : 'S'));
+            String str = (b.num == 1 ? switch1 : switch2)[i];
+            res.append(str.replace('$', b.num == 1 ? 's' : 'S'));
           } else {
             appendTimes(res, 5, " ");
           }

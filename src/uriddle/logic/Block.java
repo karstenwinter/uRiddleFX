@@ -2,11 +2,12 @@ package uriddle.logic;
 
 public class Block {
   public enum BlockType {
-    DEFAULT,
     BOUNDS, PLAYER, GATE, EXIT,
+    DEFAULT,
     DOOR, SWITCH,
     PORTAL,
     RYTHM,
+    PASSWAY,
     PIXELSPOT,
     MIRRORPLAYER,
     ONEWAY
@@ -20,14 +21,16 @@ public class Block {
   public Switch switchVal;
   public Portal portal;
   public OneWay oneWay;
+  public int num;
 
   @Override
   public String toString() {
-    return this.type + " " + bigU + ", " + smallU + ", " + door + ", " + switchVal + ", " + portal + ", " + oneWay;
+    return this.type + " " + num + " " + bigU + ", " + smallU + ", " + door + ", " + switchVal + ", " + portal + ", " + oneWay;
   }
 
   public Block clone() {
     Block b = new Block();
+    b.num = num;
     b.type = type;
     b.typeBefore = typeBefore;
     b.bigU = bigU;

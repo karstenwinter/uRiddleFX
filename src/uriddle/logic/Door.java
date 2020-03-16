@@ -6,21 +6,19 @@ public class Door {
   }
 
   public DoorType type;
-  public int num;
   public boolean open = false;
 
-  public Door(DoorType type, int num) {
+  public Door(DoorType type) {
     this.type = type;
-    this.num = num;
   }
 
   @Override
   public String toString() {
-    return "Door " + type + " " + num + " " + open;
+    return "Door " + type + " " + open;
   }
 
   public Door clone() {
-    Door door = new Door(type, num);
+    Door door = new Door(type);
     door.open = open;
     return door;
   }

@@ -20,6 +20,10 @@ public class Logic {
     State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER);
 
     int comp = Integer.compare(state.ordinal(), state2.ordinal());
+    level.counter += 1;
+    if (level.counter > 4) {
+      level.counter = 0;
+    }
     if (comp < 0) {
       return state;
     } else {
@@ -66,7 +70,7 @@ public class Logic {
             for (Block c : r.cols) {
               portalX++;
 
-              if (c.portal != null && targetBlock.portal.num != c.portal.num) {
+              if (c.portal != null && targetBlock.num != c.num) {
                 fromPortalDir = targetBlock.portal.dir;
                 Block targetPortal = c;
                 targetWasPortal = true;
@@ -253,7 +257,7 @@ public class Logic {
         for (Row r : level.rows) {
           for (Block c : r.cols) {
             if (c.door != null)
-              c.door.open = c.door.num == target.switchVal.num;
+              c.door.open = c.num == target.num;
           }
         }
       }

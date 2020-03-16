@@ -71,14 +71,17 @@ public class LevelReader {
         char rDelta2 = lines.get(midY).charAt(midX + 2);
         char dDelta2 = lines.get(midY + 2).charAt(midX);
 
+        char diagon1 = lines.get(midY - 1).charAt(midX - 1);
+        char diagon2 = lines.get(midY - 1).charAt(midX + 1);
+        char diagon3 = lines.get(midY + 1).charAt(midX - 1);
+        char diagon4 = lines.get(midY + 1).charAt(midX + 1);
+
         if (centerChar == '.') {
           if (uDelta2 != '.' || lDelta2 != '.' || rDelta2 != '.' || dDelta2 != '.') {
             block.type = PORTAL;
-            block.portal = new Portal(
-                    uDelta2 == '1' || lDelta2 == '1' || rDelta2 == '1' || dDelta2 == '1'
-                            ? 1 : 2,
-                    getDir(uDelta2, rDelta2, dDelta2, lDelta2)
-            );
+            block.portal = new Portal(getDir(uDelta2, rDelta2, dDelta2, lDelta2));
+            block.num = uDelta2 == '1' || lDelta2 == '1' || rDelta2 == '1' || dDelta2 == '1'
+                    ? 1 : 2;
           } else {
             block.type = BOUNDS;
           }
@@ -92,14 +95,17 @@ public class LevelReader {
           block.type = MIRRORPLAYER;
         } else if (centerChar == 'd' || centerChar == 'D') {
           block.type = DOOR;
-          block.door = new Door(
-                  rDelta2 != ' ' ? Door.DoorType.VERTICAL : Door.DoorType.HORIZONTAL,
-                  centerChar == 'd' ? 1 : 2);
+          block.door = new Door(rDelta2 != ' ' ? Door.DoorType.VERTICAL : Door.DoorType.HORIZONTAL);
+          block.num = centerChar == 'd' ? 1 : 2;
         } else if (centerChar == 's' || centerChar == 'S') {
           block.type = SWITCH;
-          block.switchVal = new Switch(centerChar == 's' ? 1 : 2);
+          block.switchVal = new Switch(Switch.SwitchType.TOGGLE);
+          block.num = centerChar == 's' ? 1 : 2;
         } else if (centerChar == 'p' || centerChar == 'P') {
           block.type = PIXELSPOT;
+        } else if (centerChar == '3' || centerChar == '4' || centerChar == '5' || centerChar == '6') {
+          block.type = RYTHM;
+          block.num = Integer.parseInt(centerChar + "") - 2;
         } else if (centerChar == '<' || centerChar == '>' || centerChar == 'v' || centerChar == '^') {
           block.type = ONEWAY;
           block.oneWay = new OneWay(OneWay.OneWayType.NOT_REVERSE,
@@ -108,8 +114,10 @@ public class LevelReader {
           block.type = ONEWAY;
           block.oneWay = new OneWay(OneWay.OneWayType.ONLY_DIRECTION,
                   getDir(uDelta1, rDelta1, dDelta1, lDelta1).opposite());
-        } else if (centerChar == '1' || centerChar == '2' || centerChar == '3' || centerChar == '4') {
-          block.type = RYTHM;
+        } else if (centerChar == ' '
+                && diagon1 == '#' && diagon2 == '#' && diagon3 == '#' && diagon4 == '#'
+                && uDelta1 == ' ' && rDelta1 == ' ' && dDelta1 == ' ' && lDelta1 == ' ') {
+          block.type = PASSWAY;
         }
 
         if (block.type == DEFAULT) {

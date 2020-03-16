@@ -1,14 +1,18 @@
 package uriddle.logic;
 
 public class Switch {
-  public int num;
+  public enum SwitchType {
+    ALWAYS, TOGGLE
+  }
 
-  public Switch(int num) {
-    this.num = num;
+  public SwitchType type;
+
+  public Switch(SwitchType type) {
+    this.type = type;
   }
 
   @Override
   public String toString() {
-    return "Switch " + num;
+    return "Switch " + type;
   }
 }

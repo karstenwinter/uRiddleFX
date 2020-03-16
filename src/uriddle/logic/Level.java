@@ -11,11 +11,12 @@ public class Level {
     NO_PLAYER, NO_GATE_OR_EXIT
   }
 
-  public final long ts = System.currentTimeMillis();
+  // public final long ts = System.currentTimeMillis();
   public String id;
   public String name;
   public final List<Row> rows = new ArrayList<Row>();
   public boolean pixelate = false;
+  public int counter;
 
   public Level(String id, String name, Row... rows) {
     this.name = name;
@@ -35,7 +36,8 @@ public class Level {
   public Level clone() {
     LevelReader levelReader = LevelReader.instance;
     Level level = levelReader.fromString(toString());
-    // door is not persisted and can be invisble
+    level.counter = counter;
+    // door may be not persisted in string / can be invisble
     int y = -1;
     for (Row r : rows) {
       y++;

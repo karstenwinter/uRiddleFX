@@ -215,18 +215,27 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             addToolbarElement(toolBar, block);
           }
         }
+      } else if (value == RYTHM) {
+        for (int i = 1; i <= 4; i++) {
+          block.num = i;
+          addToolbarElement(toolBar, block);
+        }
       } else if (value == DOOR) {
         for (Door.DoorType d : Door.DoorType.values()) {
-          block.door = new Door(d, 1);
+          block.door = new Door(d);
+          block.num = 1;
           addToolbarElement(toolBar, block);
-          block.door = new Door(d, 2);
+          block.door = new Door(d);
+          block.num = 2;
           addToolbarElement(toolBar, block);
         }
       } else if (value == PORTAL) {
         for (Direction d : Direction.values()) {
-          block.portal = new Portal(1, d);
+          block.portal = new Portal(d);
+          block.num = 1;
           addToolbarElement(toolBar, block);
-          block.portal = new Portal(2, d);
+          block.portal = new Portal(d);
+          block.num = 2;
           addToolbarElement(toolBar, block);
         }
       } else if (value == DEFAULT) {
@@ -242,9 +251,11 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           }
         }
       } else if (value == SWITCH) {
-        block.switchVal = new Switch(1);
+        block.switchVal = new Switch(Switch.SwitchType.TOGGLE);
+        block.num = 1;
         addToolbarElement(toolBar, block);
-        block.switchVal = new Switch(2);
+        block.switchVal = new Switch(Switch.SwitchType.TOGGLE);
+        block.num = 2;
         addToolbarElement(toolBar, block);
       } else {
         addToolbarElement(toolBar, block);
@@ -561,7 +572,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       } else {
         if (clipboard.hasString()) {
           String str = clipboard.getString();
-          select(LevelReader.instance.fromString(str));
+          Level loaded = LevelReader.instance.fromString(str);
+          levelToEdit.rows.clear();
+          levelToEdit.rows.addAll(loaded.rows);
+          levelToEdit.name = loaded.name;
+          levelToEdit.id = loaded.id;
+          levelToEdit.pixelate = loaded.pixelate;
+          select(loaded);
           updateView();
           fillEditorPane();
         }
