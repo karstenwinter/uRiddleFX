@@ -1,9 +1,15 @@
 package uriddle.logic;
 
-import javafx.util.Pair;
+import solid.collectors.ToArray;
+import solid.collectors.ToArrayList;
+import solid.functions.Func1;
+import solid.stream.Stream;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static solid.collectors.ToArray.toArray;
+import static solid.collectors.ToArrayList.toArrayList;
+import static solid.stream.Stream.stream;
 
 public class Level {
   public enum State {
@@ -51,11 +57,18 @@ public class Level {
       }
     }
     return level;*/
-    List<Row> rows = this.rows.stream()
-            .map(x -> new Row(x.cols.stream()
-                    .map(y -> y.clone()).collect(Collectors.toList()).toArray(new Block[0])))
-            .collect(Collectors.toList());
+    List<Row> rows = stream(this.rows)
+            .map(x -> {
+              Block[] blocks = stream(x.cols)
+                      .map((Block y) -> y.clone())
+                      .collect(toArray(Block.class));
+              return new Row(blocks);
+            })
+            .collect(ToArrayList.<Row>toArrayList());
     // System.out.println(rows.getClass() + " / " + rows.size());
-    return new Level(id, name, rows.toArray(new Row[0]));
+    Level level = new Level(id, name, rows.toArray(new Row[0]));
+    level.counter = counter;
+    level.pixelate = pixelate;
+    return level;
   }
 }

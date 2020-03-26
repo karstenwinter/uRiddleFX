@@ -1,5 +1,7 @@
 package uriddle.logic;
 
+import static solid.collectors.ToArrayList.toArrayList;
+import static solid.stream.Stream.stream;
 import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Level.State.*;
 import static uriddle.logic.U.UType.*;
@@ -7,11 +9,13 @@ import static uriddle.logic.U.UType.*;
 import java.util.AbstractMap;
 import java.util.AbstractMap.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.*;
-import java.util.stream.Collectors;
 
+import solid.collectors.ToArrayList;
+import solid.functions.Func1;
+import solid.functions.Func2;
+import solid.stream.Stream;
 import uriddle.logic.Level.*;
 
 public class Logic {
@@ -33,7 +37,7 @@ public class Logic {
     State state = movePlayer(level, dir, PLAYER, animation);
     State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER, animation);
 
-    int comp = Integer.compare(state.ordinal(), state2.ordinal());
+    int comp = Integer.valueOf(state.ordinal()).compareTo(state2.ordinal());
     if (state != CANNOT_MOVE) {
       level.counter += 1;
       if (level.counter > 4) {
@@ -333,6 +337,7 @@ public class Logic {
     System.out.println("playerPos yx " + playerPosY + "," + playerPosX
             + " targetPos yx " + targetPosY + "," + targetPosX);
     Level l = level.clone();
+    String after = l.toString();
     l.rows.get(playerPosY).cols.set(playerPosX, playerBefore);
     l.rows.get(targetPosY).cols.set(targetPosX, targetBefore);
     String before = l.toString();
@@ -340,9 +345,10 @@ public class Logic {
     String[] stringRows = before.split("\n");
 
     char[][] gridBefore = new char[0][0];
-    gridBefore = Arrays.stream(stringRows)
+    gridBefore = stream(stringRows)
             .skip(1)
-            .map(row -> row.toCharArray()).collect(Collectors.toList())
+            .map((Func1<String, Object>) row -> row.toCharArray())
+            .collect(toArrayList())
             .toArray(gridBefore);
 
     int h = gridBefore.length;
@@ -364,28 +370,39 @@ public class Logic {
             int shiftedCoordY = gridY - moveAwayDir.dy * shift;
             int shiftedCoordX = gridX - moveAwayDir.dx * shift;
             boolean blockCoordForGridCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, shiftedCoordY, shiftedCoordX);
-            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : value;
+            if (blockCoordForGridCoord) {
+              value = gridBefore[shiftedCoordY][shiftedCoordX];
+              if (value == '+' || value == '#') {
+                if (playerBefore.smallU != null && player.smallU == null) {
+                  // value = ' ';
+                } else if (playerBefore.bigU != null && player.bigU == null) {
+                  // value = ' ';
+                }
+              }
+            }
           }
 
           if (isTargetCoord) {
             int shiftedCoordY = gridY - enterDir.dy * shift;
             int shiftedCoordX = gridX - enterDir.dx * shift;
             boolean blockCoordForGridCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, shiftedCoordY, shiftedCoordX);
-            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : value;
+            if (blockCoordForGridCoord) {
+              value = gridBefore[shiftedCoordY][shiftedCoordX];
+            }
           }
+
           grid[gridY][gridX] = value;
         }
       }
 
-      animation.add(Arrays.stream(grid)
-              .map(row -> new String(row))
+      animation.add(stream(grid)
+              .map((Func1<char[], Object>) row -> new String(row))
               .reduce(":", (a, b) -> a + "\n" + b));
       // gridBefore = grid;
     }
-    l.rows.get(playerPosY).cols.set(playerPosX, player);
-    l.rows.get(targetPosY).cols.set(targetPosX, target);
-    animation.add(l.toString());
-
+    //   l.rows.get(playerPosY).cols.set(playerPosX, player);
+    // l.rows.get(targetPosY).cols.set(targetPosX, target);
+    animation.add(after);
   }
 
   boolean isBlockCoordForGridCoord(int blockPosY, int blockPosX, int gridY, int gridX) {
