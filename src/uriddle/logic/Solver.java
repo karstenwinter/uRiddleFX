@@ -3,6 +3,7 @@ package uriddle.logic;
 import uriddle.logic.Direction;
 import uriddle.logic.Level;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Solver {
@@ -35,7 +36,7 @@ public class Solver {
       if (clone == null) {
         clone = level.clone();
       }
-      Level.State s = Logic.instance.movePlayer(clone, d, Block.BlockType.PLAYER);
+      Level.State s = Logic.instance.movePlayer(clone, d, Block.BlockType.PLAYER, null);
       if (verbose) {
         System.out.println(clone);
       }

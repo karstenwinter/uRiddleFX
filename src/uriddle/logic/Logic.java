@@ -4,9 +4,13 @@ import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Level.State.*;
 import static uriddle.logic.U.UType.*;
 
+import java.util.AbstractMap;
 import java.util.AbstractMap.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.*;
+import java.util.stream.Collectors;
 
 import uriddle.logic.Level.*;
 
@@ -15,9 +19,19 @@ public class Logic {
 
   public static final Logic instance = new Logic();
 
+  public Map.Entry<State, String[]> goWithAnimation(Level level, Direction dir) {
+    ArrayList<String> list = new ArrayList<String>(5);
+    State go = Logic.instance.go(level, dir, list);
+    return new AbstractMap.SimpleEntry<State, String[]>(go, list.toArray(new String[5]));
+  }
+
   public State go(Level level, Direction dir) {
-    State state = movePlayer(level, dir, PLAYER);
-    State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER);
+    return go(level, dir, null);
+  }
+
+  public State go(Level level, Direction dir, ArrayList<String> animation) {
+    State state = movePlayer(level, dir, PLAYER, animation);
+    State state2 = movePlayer(level, dir.opposite(), MIRRORPLAYER, animation);
 
     int comp = Integer.compare(state.ordinal(), state2.ordinal());
     if (state != CANNOT_MOVE) {
@@ -34,7 +48,7 @@ public class Logic {
     }
   }
 
-  State movePlayer(Level level, Direction dir, Block.BlockType playerType) {
+  State movePlayer(Level level, Direction dir, Block.BlockType playerType, ArrayList<String> animation) {
     Entry<Block, int[]> pair = getPlayerWithPos(level, playerType);
     if (pair == null) {
       return NO_PLAYER;
@@ -99,8 +113,9 @@ public class Logic {
             return CANNOT_MOVE;
           }
         }*/
-        boolean moved = doMove(dir, playerBlock, targetBlock, level, playerType, false,
-                fromPortalDir, toPortalDir, level.counter);
+        boolean moved = doMove(
+                dir, playerBlock, targetBlock, level, playerType, false,
+                fromPortalDir, toPortalDir, level.counter, animation);
         if (moved) {
           res = targetWasPortal ? USED_PORTAL : MOVED;
 
@@ -164,7 +179,8 @@ public class Logic {
   }
 
   boolean doMove(Direction inputDir, Block player, Block target, Level level, Block.BlockType playerType,
-                 boolean checkOnly, Direction fromPortalDir, Direction toPortalDir, int counter) {
+                 boolean checkOnly, Direction fromPortalDir, Direction toPortalDir, int counter,
+                 ArrayList<String> animation) {
     Direction enterDir = toPortalDir == null ? inputDir : toPortalDir;
     Direction moveAwayDir = fromPortalDir == null ? inputDir : fromPortalDir.opposite();
 
@@ -188,7 +204,7 @@ public class Logic {
       }
     }
 
-    if (target.type == RYTHM &&target.num == counter) {
+    if (target.type == RYTHM && target.num == counter) {
       return false;
     }
 
@@ -205,6 +221,9 @@ public class Logic {
       LOG.debug("cannot go into big u");
       return false;
     }
+
+    Block playerBefore = player.clone();
+    Block targetBefore = target.clone();
 
     if (player.bigU != null) {
       Direction bigUDir = player.bigU.dir;
@@ -275,15 +294,98 @@ public class Logic {
       if (target.type == PIXELSPOT) {
         level.pixelate = !level.pixelate;
       }
-
+      // move it
       player.type = player.typeBefore;
 
       target.typeBefore = target.type;
       target.type = playerType;
 
       changeTargetIfNeeded(playerHadSmallU, playerHadBigU, target, fromPortalDir, toPortalDir);
+
+      // animate
+      animate(animation, level, playerBefore, targetBefore, player, target, enterDir, moveAwayDir);
     }
     return true;
+  }
+
+  void animate(ArrayList<String> animation, Level level, Block playerBefore, Block targetBefore, Block player, Block target, Direction enterDir, Direction moveAwayDir) {
+    if (animation == null) {
+      return;
+    }
+    int y = -1;
+    int playerPosX = -1, playerPosY = -1, targetPosX = -1, targetPosY = -1;
+    for (Row r : level.rows) {
+      y++;
+      int x = -1;
+      for (Block b : r.cols) {
+        x++;
+        if (b == player) {
+          playerPosX = x;
+          playerPosY = y;
+        }
+        if (b == target) {
+          targetPosX = x;
+          targetPosY = y;
+        }
+      }
+    }
+
+    System.out.println("playerPos yx " + playerPosY + "," + playerPosX
+            + " targetPos yx " + targetPosY + "," + targetPosX);
+    Level l = level.clone();
+    l.rows.get(playerPosY).cols.set(playerPosX, playerBefore);
+    l.rows.get(targetPosY).cols.set(targetPosX, targetBefore);
+    String before = l.toString();
+    animation.add(before);
+    String[] stringRows = before.split("\n");
+
+    char[][] gridBefore = new char[0][0];
+    gridBefore = Arrays.stream(stringRows)
+            .skip(1)
+            .map(row -> row.toCharArray()).collect(Collectors.toList())
+            .toArray(gridBefore);
+
+    int h = gridBefore.length;
+    int w = gridBefore[0].length;
+
+    for (int shift = 1; shift <= 5; shift++) {
+
+      char[][] grid = new char[h][w];
+
+      for (int gridY = 0; gridY < h; gridY++) {
+        for (int gridX = 0; gridX < w; gridX++) {
+          boolean isPlayerCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, gridY, gridX);
+          //  boolean isTargetCoord = gridX / 7 == targetPosX && gridY / 7 == targetPosY;
+          //System.out.println("grid yx " + gridY + "," + gridX + ": player? " + isPlayerCoord + ", target? " + isTargetCoord);
+          //char value = gridBefore[gridY - moveAwayDir.dy * shift][gridX - moveAwayDir.dx * shift];
+          char value = gridBefore[gridY][gridX];
+
+          int shiftedCoordY = gridY - moveAwayDir.dy * shift;
+          int shiftedCoordX = gridX - moveAwayDir.dx * shift;
+          boolean blockCoordForGridCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, shiftedCoordY, shiftedCoordX);
+          if (isPlayerCoord) {
+            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : ' ';
+          }
+          //if (isTargetCoord) {
+          //value = grid[gridY + enterDir.dy * shift][gridX + enterDir.dx * shift];
+          //}
+          grid[gridY][gridX] = value;
+        }
+      }
+
+      animation.add(Arrays.stream(grid)
+              .map(row -> new String(row))
+              .reduce(":", (a, b) -> a + "\n" + b));
+      // gridBefore = grid;
+    }
+    l.rows.get(playerPosY).cols.set(playerPosX, player);
+    l.rows.get(targetPosY).cols.set(targetPosX, target);
+    animation.add(l.toString());
+
+  }
+
+  boolean isBlockCoordForGridCoord(int blockPosY, int blockPosX, int gridY, int gridX) {
+    return gridX / 7 == blockPosX && gridY / 7 == blockPosY;
   }
 
   void changeTargetIfNeeded(boolean playerHadSmallU, boolean playerHadBigU, Block target, Direction fromPortalDir, Direction toPortalDir) {

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="uRiddleFX.jnlp">
   <information>
-    <title>uRiddleFX</title>
+    <title>Box Code Editor</title>
     <vendor>Unknown</vendor>
     <description>uRiddleFX</description>
     <offline-allowed/>
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="uRiddleFX.jar" size="129572" download="eager" />
+    <jar href="uRiddleFX.jar" size="135227" download="eager" />
   </resources>
-  <jfx:javafx-desc  width="600" height="400" main-class="sample.Main"  name="uRiddleFX" />
+  <jfx:javafx-desc  width="1000" height="900" main-class="sample.Main"  name="uRiddleFX" />
   <update check="background"/>
 </jnlp>

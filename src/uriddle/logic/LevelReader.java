@@ -120,7 +120,7 @@ public class LevelReader {
           block.type = PASSWAY;
         }
 
-        if (block.type == DEFAULT) {
+        if (block.type == DEFAULT || block.type == PLAYER) {
 
           Direction dirDelta1 = getDir(uDelta1, rDelta1, dDelta1, lDelta1);
           if (dirDelta1 != null) {

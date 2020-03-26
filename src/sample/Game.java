@@ -114,7 +114,7 @@ class Game {
     while ((read = s.nextLine()) != null) {
       Direction d = getDir(read);
       if (d != null) {
-        State go = level.go(d);
+        State go = Logic.instance.go(level, d);
         System.out.println(level.toString());
         if (go == REACHED_EXIT) {
           System.out.println("You reached the exit! Well done!");

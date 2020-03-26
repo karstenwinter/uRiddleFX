@@ -1,6 +1,9 @@
 package uriddle.logic;
 
+import javafx.util.Pair;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Level {
   public enum State {
@@ -29,12 +32,8 @@ public class Level {
     return LevelWriter.instance.toString(this);
   }
 
-  public State go(Direction dir) {
-    return Logic.instance.go(this, dir);
-  }
-
   public Level clone() {
-    LevelReader levelReader = LevelReader.instance;
+    /*LevelReader levelReader = LevelReader.instance;
     Level level = levelReader.fromString(toString());
     level.counter = counter;
     // door may be not persisted in string / can be invisble
@@ -51,6 +50,12 @@ public class Level {
         }
       }
     }
-    return level;
+    return level;*/
+    List<Row> rows = this.rows.stream()
+            .map(x -> new Row(x.cols.stream()
+                    .map(y -> y.clone()).collect(Collectors.toList()).toArray(new Block[0])))
+            .collect(Collectors.toList());
+    // System.out.println(rows.getClass() + " / " + rows.size());
+    return new Level(id, name, rows.toArray(new Row[0]));
   }
 }

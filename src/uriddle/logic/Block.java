@@ -1,6 +1,7 @@
 package uriddle.logic;
 
 public class Block {
+
   public enum BlockType {
     BOUNDS, PLAYER, GATE, EXIT,
     DEFAULT,
@@ -22,6 +23,16 @@ public class Block {
   public Portal portal;
   public OneWay oneWay;
   public int num;
+
+  public Block(BlockType blockType, U big, U small) {
+    this.type = blockType;
+    this.bigU = big;
+    this.smallU = small;
+  }
+
+  public Block() {
+
+  }
 
   @Override
   public String toString() {

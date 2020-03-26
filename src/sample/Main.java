@@ -2,6 +2,8 @@ package sample;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -25,10 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +58,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private Path sampleLevels = Paths.get("p99-sample-levels.txt");
   private FlowPane toolBar;
   private Button solveButton;
+  private boolean animations;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
@@ -148,6 +148,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     );
     manage.setMinWidth(300);
     solveButton = new Button(); // createSolveButton();
+
+    final String s = "animations (beta) are ";
+    Button button = new Button(s + "off");
+    button.setOnMouseClicked(x -> {
+      this.animations = !this.animations;
+      button.setText(s + (this.animations ? "on" : "off"));
+    });
     HBox titleResize = new HBox(
             label("Box Code Editor v3"),
             createGap(),
@@ -159,8 +166,9 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             label(" scale"),
             buttonScale(-1),
             buttonScale(1),
-            label(" wasd: move, (r)eset, samples: (n)ext, (p)rev") //,
+            label(" wasd: move, (r)eset, samples: (n)ext, (p)rev"),
             //solveButton
+            button
     );
     root.getChildren().add(
             new VBox(
@@ -717,15 +725,45 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
     Direction d = Game.getDir(read);
     if (d != null) {
-      Level.State go = levelToPlay.go(d);
+      Map.Entry<Level.State, String[]> go = Logic.instance.goWithAnimation(levelToPlay, d);
       //System.out.println(level.toString());
-      if (go == REACHED_EXIT) {
+      if (animations) {
+        int i = 0;
+        for (String s : go.getValue()) {
+          final int iFinal = i++;
+
+          Task<Void> sleeper = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+              try {
+                Thread.sleep(iFinal * 10);
+              } catch (InterruptedException e) {
+              }
+              return null;
+            }
+          };
+          sleeper.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+              if (s != null) {
+                writableImage = new WritableImage(900, 900);
+                imageView.setImage(writableImage);
+                Game.drawToBitmap(writableImage, s, levelToEdit.pixelate, levelToPlay.counter);
+              }
+            }
+          });
+          new Thread(sleeper).start();
+        }
+      } else {
+        updateView();
+      }
+      if (go.getKey() == REACHED_EXIT) {
         System.out.println("You reached the exit! Well done!");
         solveButton.setText("You solved it :)");
         //index++;
         //select(levels.get(index));
       }
-      updateView();
+
     }
   }
 
