@@ -355,20 +355,24 @@ public class Logic {
       for (int gridY = 0; gridY < h; gridY++) {
         for (int gridX = 0; gridX < w; gridX++) {
           boolean isPlayerCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, gridY, gridX);
-          //  boolean isTargetCoord = gridX / 7 == targetPosX && gridY / 7 == targetPosY;
+          boolean isTargetCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, gridY, gridX);
           //System.out.println("grid yx " + gridY + "," + gridX + ": player? " + isPlayerCoord + ", target? " + isTargetCoord);
           //char value = gridBefore[gridY - moveAwayDir.dy * shift][gridX - moveAwayDir.dx * shift];
           char value = gridBefore[gridY][gridX];
 
-          int shiftedCoordY = gridY - moveAwayDir.dy * shift;
-          int shiftedCoordX = gridX - moveAwayDir.dx * shift;
-          boolean blockCoordForGridCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, shiftedCoordY, shiftedCoordX);
           if (isPlayerCoord) {
-            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : ' ';
+            int shiftedCoordY = gridY - moveAwayDir.dy * shift;
+            int shiftedCoordX = gridX - moveAwayDir.dx * shift;
+            boolean blockCoordForGridCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, shiftedCoordY, shiftedCoordX);
+            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : value;
           }
-          //if (isTargetCoord) {
-          //value = grid[gridY + enterDir.dy * shift][gridX + enterDir.dx * shift];
-          //}
+
+          if (isTargetCoord) {
+            int shiftedCoordY = gridY - enterDir.dy * shift;
+            int shiftedCoordX = gridX - enterDir.dx * shift;
+            boolean blockCoordForGridCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, shiftedCoordY, shiftedCoordX);
+            value = blockCoordForGridCoord ? gridBefore[shiftedCoordY][shiftedCoordX] : value;
+          }
           grid[gridY][gridX] = value;
         }
       }

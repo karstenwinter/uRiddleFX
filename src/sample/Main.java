@@ -58,7 +58,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private Path sampleLevels = Paths.get("p99-sample-levels.txt");
   private FlowPane toolBar;
   private Button solveButton;
-  private boolean animations;
+  private boolean animations = true;
+  private int animationSpeed = 10;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
@@ -149,14 +150,21 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     manage.setMinWidth(300);
     solveButton = new Button(); // createSolveButton();
 
-    final String s = "animations (beta) are ";
-    Button button = new Button(s + "off");
-    button.setOnMouseClicked(x -> {
+    final String s = "animations are ";
+    Button animateButton = new Button(s + "off");
+    animateButton.setOnMouseClicked(x -> {
       this.animations = !this.animations;
-      button.setText(s + (this.animations ? "on" : "off"));
+      animateButton.setText(s + (this.animations ? "on" : "off"));
+    });
+
+    final String speedText = "delay ";
+    Button speedButton = new Button(speedText + animationSpeed + "ms");
+    speedButton.setOnMouseClicked(x -> {
+      this.animationSpeed = (this.animationSpeed + 10) % 300;
+      speedButton.setText(speedText + animationSpeed + "ms");
     });
     HBox titleResize = new HBox(
-            label("Box Code Editor v3"),
+            label("Box Code Editor v4"),
             createGap(),
             label("Resize"),
             buttonSize(-1, 0),
@@ -168,7 +176,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             buttonScale(1),
             label(" wasd: move, (r)eset, samples: (n)ext, (p)rev"),
             //solveButton
-            button
+            animateButton,
+            speedButton
     );
     root.getChildren().add(
             new VBox(
@@ -727,7 +736,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     if (d != null) {
       Map.Entry<Level.State, String[]> go = Logic.instance.goWithAnimation(levelToPlay, d);
       //System.out.println(level.toString());
-      if (animations) {
+      if (this.animations) {
         int i = 0;
         for (String s : go.getValue()) {
           final int iFinal = i++;
@@ -736,7 +745,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             @Override
             protected Void call() throws Exception {
               try {
-                Thread.sleep(iFinal * 10);
+                Thread.sleep(iFinal * Main.this.animationSpeed);
               } catch (InterruptedException e) {
               }
               return null;
