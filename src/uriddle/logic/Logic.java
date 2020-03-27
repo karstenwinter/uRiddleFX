@@ -377,8 +377,8 @@ public class Logic {
             }
 
             if (isTargetCoord) {
-              int shiftedCoordY = (gridY % 6 - enterDir.dy * shift);
-              int shiftedCoordX = (gridX % 6 - enterDir.dx * shift);
+              int shiftedCoordY = (gridY % 6 + enterDir.dy * (shiftMax - shift));
+              int shiftedCoordX = (gridX % 6 + enterDir.dx * (shiftMax - shift));
               value = getOrBlank(targetGrid, shiftedCoordY, shiftedCoordX); // 'T';
             }
           }
