@@ -1,7 +1,7 @@
 package sample;
 
+import com.sun.tools.javac.util.Log;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -37,6 +37,11 @@ import static uriddle.logic.Level.State.REACHED_EXIT;
 
 public class Main extends Application implements EventHandler<KeyEvent> {
 
+  final String saveText = "Save to Clip";
+  final String trySolveText = "Try Solve";
+  final String animationsText = "Anmations are ";
+  final String speedText = "Delay ";
+
   private WritableImage writableImage;
   private List<Level> levels = new ArrayList<Level>();
   private Level levelToPlay;
@@ -48,9 +53,6 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private VBox editorPane;
   private Button saveButton;
 
-  final String saveText = "Save to Clip";
-  final String try_solve = "Try Solve";
-
   private Level levelToEdit;
   private ScrollPane packList;
   private ScrollPane levelList;
@@ -59,7 +61,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private FlowPane toolBar;
   private Button solveButton;
   private boolean animations = true;
-  private int animationSpeed = 10;
+  private int animationSpeed = 200;
 
   @Override
   public void start(Stage primaryStage) throws Exception {
@@ -150,19 +152,30 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     manage.setMinWidth(300);
     solveButton = new Button(); // createSolveButton();
 
-    final String s = "animations are ";
-    Button animateButton = new Button(s + "off");
+    Button animateButton = new Button(animationsText + "off");
     animateButton.setOnMouseClicked(x -> {
       this.animations = !this.animations;
-      animateButton.setText(s + (this.animations ? "on" : "off"));
+      animateButton.setText(animationsText + (this.animations ? "on" : "off"));
     });
 
-    final String speedText = "delay ";
     Button speedButton = new Button(speedText + animationSpeed + "ms");
     speedButton.setOnMouseClicked(x -> {
       this.animationSpeed = (this.animationSpeed + 10) % 300;
       speedButton.setText(speedText + animationSpeed + "ms");
     });
+
+    Button b = new Button("d1" + Logic.instance.delta);
+    b.setOnMouseClicked(x -> {
+      Logic.instance.delta = (Logic.instance.delta + 1) % 5;
+      b.setText("d1" + Logic.instance.delta);
+    });
+
+    Button b2 = new Button("d2" + Logic.instance.delta);
+    b2.setOnMouseClicked(x -> {
+      Logic.instance.delta2 = (Logic.instance.delta2 + 1) % 5;
+      b2.setText("d2" + Logic.instance.delta2);
+    });
+
     HBox titleResize = new HBox(
             label("Box Code Editor v4"),
             createGap(),
@@ -175,6 +188,8 @@ public class Main extends Application implements EventHandler<KeyEvent> {
             buttonScale(-1),
             buttonScale(1),
             label(" wasd: move, (r)eset, samples: (n)ext, (p)rev"),
+            //b2,
+            b,
             //solveButton
             animateButton,
             speedButton
@@ -196,7 +211,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   }
 
   Button createSolveButton() {
-    Button solve = new Button(try_solve);
+    Button solve = new Button(trySolveText);
     solve.setOnMouseClicked(e -> {
 
       Solver solver = new Solver();
@@ -247,18 +262,17 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           addToolbarElement(toolBar, block);
         }
       } else if (value == PORTAL) {
-        for (Direction d : Direction.values()) {
-          block.portal = new Portal(d);
-          block.num = 1;
-          addToolbarElement(toolBar, block);
-          block.portal = new Portal(d);
-          block.num = 2;
-          addToolbarElement(toolBar, block);
+        for (int num = 1; num <= 2; num++) {
+          for (Direction d : Direction.values()) {
+            block.portal = new Portal(d);
+            block.num = num;
+            addToolbarElement(toolBar, block);
+          }
         }
       } else if (value == DEFAULT) {
         addToolbarElement(toolBar, block);
-        for (Direction d : Direction.values()) {
-          for (U.UType uType : U.UType.values()) {
+        for (U.UType uType : U.UType.values()) {
+          for (Direction d : Direction.values()) {
             block.smallU = null;
             block.bigU = new U(uType, d);
             addToolbarElement(toolBar, block);
@@ -640,7 +654,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           img.setImage(eImg);
           levelToPlay = levelToEdit.clone();
           updateView();
-          solveButton.setText(try_solve);
+          solveButton.setText(trySolveText);
           saveButton.setText(saveText);
         });
         hbox.getChildren().add(img);

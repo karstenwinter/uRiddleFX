@@ -44,8 +44,8 @@ public class Block {
     b.num = num;
     b.type = type;
     b.typeBefore = typeBefore;
-    b.bigU = bigU;
-    b.smallU = smallU;
+    b.bigU = bigU != null ? bigU.clone() : null;
+    b.smallU = smallU != null ? smallU.clone() : null;
     b.door = door != null ? door.clone() : null;
     b.switchVal = switchVal;
     b.portal = portal;

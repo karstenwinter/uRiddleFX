@@ -57,6 +57,7 @@ class Game {
                         : c == '#' ? 0xFFFF0000
                         : c == '.' ? 0xFF333333
                         : c == 'P' ? 0xFF330000
+                        : c == 'T' ? 0xFF003300
                         : c == 'X' ? 0xFFFF3333
                         : c == 'd' ? 0xFF33FF33
                         : c == 'D' ? 0xFFFF3333

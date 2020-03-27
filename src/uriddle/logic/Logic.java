@@ -342,52 +342,44 @@ public class Logic {
     l.rows.get(targetPosY).cols.set(targetPosX, targetBefore);
     String before = l.toString();
     animation.add(before);
-    String[] stringRows = before.split("\n");
 
-    char[][] gridBefore = new char[0][0];
-    gridBefore = stream(stringRows)
-            .skip(1)
-            .map((Func1<String, Object>) row -> row.toCharArray())
-            .collect(toArrayList())
-            .toArray(gridBefore);
+    l.rows.get(playerPosY).cols.set(playerPosX, new Block(DEFAULT, null, null));
+    l.rows.get(targetPosY).cols.set(targetPosX, new Block(DEFAULT, null, null));
+    before = l.toString();
+
+    char[][] gridBefore = as2dGrid(before);
 
     int h = gridBefore.length;
     int w = gridBefore[0].length;
 
-    for (int shift = 1; shift <= 5; shift++) {
+    char[][] playerBeforeGrid = as2dGrid(LevelWriter.instance.toString(playerBefore));
+    char[][] targetGrid = as2dGrid(LevelWriter.instance.toString(target));
+
+    int shiftMax = 5;
+    for (int shift = 1; shift <= shiftMax; shift++) {
 
       char[][] grid = new char[h][w];
 
       for (int gridY = 0; gridY < h; gridY++) {
         for (int gridX = 0; gridX < w; gridX++) {
+
+          char value = gridBefore[gridY][gridX];
+
           boolean isPlayerCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, gridY, gridX);
           boolean isTargetCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, gridY, gridX);
           //System.out.println("grid yx " + gridY + "," + gridX + ": player? " + isPlayerCoord + ", target? " + isTargetCoord);
           //char value = gridBefore[gridY - moveAwayDir.dy * shift][gridX - moveAwayDir.dx * shift];
-          char value = gridBefore[gridY][gridX];
-
-          if (isPlayerCoord) {
-            int shiftedCoordY = gridY - moveAwayDir.dy * shift;
-            int shiftedCoordX = gridX - moveAwayDir.dx * shift;
-            boolean blockCoordForGridCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, shiftedCoordY, shiftedCoordX);
-            if (blockCoordForGridCoord) {
-              value = gridBefore[shiftedCoordY][shiftedCoordX];
-              if (value == '+' || value == '#') {
-                if (playerBefore.smallU != null && player.smallU == null) {
-                  // value = ' ';
-                } else if (playerBefore.bigU != null && player.bigU == null) {
-                  // value = ' ';
-                }
-              }
+          if (true) { //gridX % 6 != 0 && gridY % 6 != 0) {
+            if (isPlayerCoord) {
+              int shiftedCoordY = (gridY % 6 - moveAwayDir.dy * shift);
+              int shiftedCoordX = (gridX % 6 - moveAwayDir.dx * shift);
+              value = getOrBlank(playerBeforeGrid, shiftedCoordY, shiftedCoordX);// 'P';
             }
-          }
 
-          if (isTargetCoord) {
-            int shiftedCoordY = gridY - enterDir.dy * shift;
-            int shiftedCoordX = gridX - enterDir.dx * shift;
-            boolean blockCoordForGridCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, shiftedCoordY, shiftedCoordX);
-            if (blockCoordForGridCoord) {
-              value = gridBefore[shiftedCoordY][shiftedCoordX];
+            if (isTargetCoord) {
+              int shiftedCoordY = (gridY % 6 - enterDir.dy * shift);
+              int shiftedCoordX = (gridX % 6 - enterDir.dx * shift);
+              value = getOrBlank(targetGrid, shiftedCoordY, shiftedCoordX); // 'T';
             }
           }
 
@@ -396,7 +388,7 @@ public class Logic {
       }
 
       animation.add(stream(grid)
-              .map((Func1<char[], Object>) row -> new String(row))
+              .map(row -> new String(row))
               .reduce(":", (a, b) -> a + "\n" + b));
       // gridBefore = grid;
     }
@@ -405,8 +397,33 @@ public class Logic {
     animation.add(after);
   }
 
+  char getOrBlank(char[][] grid, int y, int x) {
+    if (y < 0 || y >= grid.length)
+      return ' ';
+    char[] chars = grid[y];
+    if (x < 0 || x >= chars.length)
+      return ' ';
+    return chars[x];
+  }
+
+  private char[][] as2dGrid(String levelString) {
+    char[][] gridBefore = new char[0][0];
+    String[] stringRows = levelString.split("\n");
+    gridBefore = stream(stringRows)
+            .skip(1)
+            .map((Func1<String, Object>) row -> row.toCharArray())
+            .collect(toArrayList())
+            .toArray(gridBefore);
+    return gridBefore;
+  }
+
+  public int delta = 0;
+  public int delta2 = 0;
+
   boolean isBlockCoordForGridCoord(int blockPosY, int blockPosX, int gridY, int gridX) {
-    return gridX / 7 == blockPosX && gridY / 7 == blockPosY;
+    int x = gridX / 6;
+    int y = gridY / 6;
+    return x == blockPosX && y == blockPosY;
   }
 
   void changeTargetIfNeeded(boolean playerHadSmallU, boolean playerHadBigU, Block target, Direction fromPortalDir, Direction toPortalDir) {

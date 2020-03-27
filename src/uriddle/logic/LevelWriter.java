@@ -221,14 +221,14 @@ public class LevelWriter {
       if (y == 0) {
         res.append(level.id + ": " + level.name).append("\n");
         insertBlankLine(res, w, row);
-        appendTimes(res, 1, "\n");
+        res.append("\n");
       }
       for (int i = 0; i < 5; i++) {
         x = -1;
         for (Block b : row.cols) {
           x++;
           if (x == 0) {
-            appendTimes(res, 1, " ");
+            res.append(" ");
           }
           if (b.bigU != null && b.smallU != null) {
             appendBigAndSmall(res, small, big, i, b);
@@ -256,7 +256,7 @@ public class LevelWriter {
 
             res.append(c);
           } else if (b.type == BlockType.RYTHM) {
-            appendTimes(res, 5, (2+b.num) + "");
+            appendTimes(res, 5, (2 + b.num) + "");
           } else if (b.type == BlockType.PASSWAY) {
             String str = passWay[i];
             res.append(str);
@@ -281,14 +281,14 @@ public class LevelWriter {
           if (b.type == BlockType.MIRRORPLAYER && i == 2) {
             res.replace(res.length() - 3, res.length() - 2, "q");
           }
-          appendTimes(res, 1, " ");
+          res.append(" ");
         }
         appendTimes(res, 5 * (w - row.cols.size()), " ");
-        appendTimes(res, 1, "\n");
+        res.append("\n");
       }
       insertBlankLine(res, w, row);
       if (y != level.rows.size() - 1) {
-        appendTimes(res, 1, "\n");
+        res.append("\n");
       }
     }
     return res.toString();

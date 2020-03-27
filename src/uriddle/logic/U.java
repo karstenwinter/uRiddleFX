@@ -13,6 +13,10 @@ public class U {
     this.dir = dir;
   }
 
+  public U clone() {
+    return new U(type, dir);
+  }
+
   @Override
   public String toString() {
     return "U" + type + " " + dir;
