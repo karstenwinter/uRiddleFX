@@ -203,10 +203,18 @@ public class LevelWriter {
   // @formatter:on
 
   public String toString(Block b) {
-    return toString(new Level("", "", new Row(b)));
+    return toString(b, false);
+  }
+
+  public String toString(Block b, boolean markBigDifferently) {
+    return toString(new Level("", "", new Row(b)), markBigDifferently);
   }
 
   public String toString(Level level) {
+    return toString(level, false);
+  }
+
+  public String toString(Level level, boolean markBigDifferently) {
     StringBuilder res = new StringBuilder();
     StringBuilder small = new StringBuilder();
     StringBuilder big = new StringBuilder();
@@ -231,9 +239,9 @@ public class LevelWriter {
             res.append(" ");
           }
           if (b.bigU != null && b.smallU != null) {
-            appendBigAndSmall(res, small, big, i, b);
+            appendBigAndSmall(res, small, big, i, b, markBigDifferently);
           } else if (b.bigU != null && b.smallU == null) {
-            appendBig(res, b.bigU, i);
+            appendBig(res, b.bigU, i, markBigDifferently);
           } else if (b.bigU == null && b.smallU != null) {
             appendSmall(res, b.smallU, i);
           } else if (b.type == BlockType.GATE) {
@@ -300,11 +308,12 @@ public class LevelWriter {
   }
 
   void appendBigAndSmall(StringBuilder res, StringBuilder small,
-                         StringBuilder big, int i, Block b) {
+                         StringBuilder big, int i, Block b,
+                         boolean markBigDifferently) {
     small.delete(0, small.length());
     big.delete(0, big.length());
     appendSmall(small, b.smallU, i);
-    appendBig(big, b.bigU, i);
+    appendBig(big, b.bigU, i, markBigDifferently);
     for (int part = 0; part < 5; part++) {
       char charAt = small.charAt(part);
       if (charAt == ' ') {
@@ -315,36 +324,39 @@ public class LevelWriter {
     }
   }
 
-  void appendBig(StringBuilder stringBuilder, U u, int i) {
+  void appendBig(StringBuilder stringBuilder, U u, int i, boolean markBigDifferently) {
+    String p = markBigDifferently ?
+            getPatternDifferent(u)
+            : getPattern(u);
     if (u.dir == Direction.TOP) {
       if (i == 4) {
-        appendPattern(stringBuilder, getPattern(u), 1, 1, 1, 1, 1);
+        appendPattern(stringBuilder, p, 1, 1, 1, 1, 1);
       } else {
-        appendPattern(stringBuilder, getPattern(u), 1, 0, 0, 0, 1);
+        appendPattern(stringBuilder, p, 1, 0, 0, 0, 1);
       }
     }
 
     if (u.dir == Direction.BOTTOM) {
       if (i == 0) {
-        appendPattern(stringBuilder, getPattern(u), 1, 1, 1, 1, 1);
+        appendPattern(stringBuilder, p, 1, 1, 1, 1, 1);
       } else {
-        appendPattern(stringBuilder, getPattern(u), 1, 0, 0, 0, 1);
+        appendPattern(stringBuilder, p, 1, 0, 0, 0, 1);
       }
     }
 
     if (u.dir == Direction.LEFT) {
       if (i == 0 || i == 4) {
-        appendPattern(stringBuilder, getPattern(u), 1, 1, 1, 1, 1);
+        appendPattern(stringBuilder, p, 1, 1, 1, 1, 1);
       } else {
-        appendPattern(stringBuilder, getPattern(u), 0, 0, 0, 0, 1);
+        appendPattern(stringBuilder, p, 0, 0, 0, 0, 1);
       }
     }
 
     if (u.dir == Direction.RIGHT) {
       if (i == 0 || i == 4) {
-        appendPattern(stringBuilder, getPattern(u), 1, 1, 1, 1, 1);
+        appendPattern(stringBuilder, p, 1, 1, 1, 1, 1);
       } else {
-        appendPattern(stringBuilder, getPattern(u), 1, 0, 0, 0, 0);
+        appendPattern(stringBuilder, p, 1, 0, 0, 0, 0);
       }
     }
   }
@@ -396,6 +408,10 @@ public class LevelWriter {
 
   String getPattern(U u) {
     return u.type == UType.IMPORTANT ? "#" : "+";
+  }
+
+  String getPatternDifferent(U u) {
+    return u.type == UType.IMPORTANT ? "'" : "-";
   }
 
   StringBuilder appendTimes(StringBuilder stringBuilder, int times, String p) {

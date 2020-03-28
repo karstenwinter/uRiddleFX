@@ -61,7 +61,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private FlowPane toolBar;
   private Button solveButton;
   private boolean animations = true;
-  private int animationSpeed = 200;
+  private int animationSpeed = 10;
 
   @Override
   public void start(Stage primaryStage) throws Exception {

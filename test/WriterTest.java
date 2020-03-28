@@ -1,6 +1,8 @@
 package uriddle.logic.test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static solid.collectors.ToArray.toArray;
+import static solid.stream.Stream.stream;
 import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Direction.*;
 import static uriddle.logic.U.UType.*;
@@ -100,8 +102,7 @@ public class WriterTest extends TestCase {
   }
 
 
-  public void testAnimation() throws Throwable {
-
+  public void testAnimation1() throws Throwable {
     String str = ": \n" +
             "                               \n" +
             " ..... ##### #####       ..... \n" +
@@ -120,37 +121,29 @@ public class WriterTest extends TestCase {
       System.out.println("<" + s.replace('.', 'W').replace(' ', '.') + ">");
     }
     String[] arr = {
-            str,
+            //str,
             ": \n" +
                     "                               \n" +
                     " ..... ##### #####       ..... \n" +
-                    " ..... # + +     #       ..... \n" +
-                    " ..... # +o+     #       ..... \n" +
-                    " ..... # +++     #       ..... \n" +
+                    " ..... # + ++    #       ..... \n" +
+                    " ..... # +o++    #       ..... \n" +
+                    " ..... # ++++    #       ..... \n" +
                     " ..... ##### #####       ..... \n" +
                     "                               ",
             ": \n" +
                     "                               \n" +
                     " ..... ##### #####       ..... \n" +
-                    " ..... #  + +    #       ..... \n" +
-                    " ..... #  +o+    #       ..... \n" +
-                    " ..... #  +++    #       ..... \n" +
+                    " ..... #  +  +   #       ..... \n" +
+                    " ..... #  +oo+   #       ..... \n" +
+                    " ..... #  ++++   #       ..... \n" +
                     " ..... ##### #####       ..... \n" +
                     "                               ",
             ": \n" +
                     "                               \n" +
                     " ..... ##### #####       ..... \n" +
-                    " ..... #   + +   #       ..... \n" +
-                    " ..... #   +o+   #       ..... \n" +
-                    " ..... #   +++   #       ..... \n" +
-                    " ..... ##### #####       ..... \n" +
-                    "                               ",
-            ": \n" +
-                    "                               \n" +
-                    " ..... ##### #####       ..... \n" +
-                    " ..... #    + +  #       ..... \n" +
-                    " ..... #    +o+  #       ..... \n" +
-                    " ..... #    +++  #       ..... \n" +
+                    " ..... #   ++ +  #       ..... \n" +
+                    " ..... #   ++o+  #       ..... \n" +
+                    " ..... #   ++++  #       ..... \n" +
                     " ..... ##### #####       ..... \n" +
                     "                               ",
             ": \n" +
@@ -170,7 +163,79 @@ public class WriterTest extends TestCase {
                     " ..... ##### #####       ..... \n" +
                     "                               ",
     };
-    assertArrayEquals( arr,stateEntry.getValue());
+    String[] collect = stream(stateEntry.getValue())
+            .map(x -> x.replace('\'', '#')
+                    .replace('-', '+'))
+            .collect(toArray(String.class));
+    assertArrayEquals(arr, collect);
+  }
+
+  public void testAnimation2() throws Throwable {
+    String str = ": \n" +
+            "                               \n" +
+            " ..... +++++ #####       ..... \n" +
+            " ..... ++ +      #       ..... \n" +
+            " ..... ++o+      #       ..... \n" +
+            " ..... ++++      #       ..... \n" +
+            " ..... +++++ #####       ..... \n" +
+            "                               ";
+    Level l = LevelReader.instance.fromString(str);
+    //	System.out.println(l);
+    Map.Entry<State, String[]> stateEntry = Logic.instance.goWithAnimation(l, RIGHT);
+    int i = -1;
+    for (String s : stateEntry.getValue()) {
+      i += 1;
+      System.out.println("ANIM " + i);
+      System.out.println("<" + s.replace('.', 'W').replace(' ', '.') + ">");
+    }
+    String[] arr = {
+            //str,
+            ": \n" +
+                    "                               \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    " ..... + + ++    #       ..... \n" +
+                    " ..... + +o++    #       ..... \n" +
+                    " ..... + ++++    #       ..... \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    "                               ",
+            ": \n" +
+                    "                               \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    " ..... +  +  +   #       ..... \n" +
+                    " ..... +  +oo+   #       ..... \n" +
+                    " ..... +  ++++   #       ..... \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    "                               ",
+            ": \n" +
+                    "                               \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    " ..... +   ++ +  #       ..... \n" +
+                    " ..... +   ++o+  #       ..... \n" +
+                    " ..... +   ++++  #       ..... \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    "                               ",
+            ": \n" +
+                    "                               \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    " ..... +     + + #       ..... \n" +
+                    " ..... +     +o+ #       ..... \n" +
+                    " ..... +     +++ #       ..... \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    "                               ",
+            ": \n" +
+                    "                               \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    " ..... +      + +#       ..... \n" +
+                    " ..... +      +o+#       ..... \n" +
+                    " ..... +      +++#       ..... \n" +
+                    " ..... +++++ #####       ..... \n" +
+                    "                               ",
+    };
+    String[] collect = stream(stateEntry.getValue())
+            .map(x -> x.replace('\'', '#')
+                    .replace('-', '+'))
+            .collect(toArray(String.class));
+    assertArrayEquals(arr, collect);
   }
 }
 // @formatter:on

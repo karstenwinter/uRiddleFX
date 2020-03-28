@@ -312,7 +312,9 @@ public class Logic {
     return true;
   }
 
-  void animate(ArrayList<String> animation, Level level, Block playerBefore, Block targetBefore, Block player, Block target, Direction enterDir, Direction moveAwayDir) {
+  void animate(ArrayList<String> animation, Level level,
+               Block playerBefore, Block targetBefore,
+               Block player, Block target, Direction enterDir, Direction moveAwayDir) {
     if (animation == null) {
       return;
     }
@@ -337,64 +339,113 @@ public class Logic {
     System.out.println("playerPos yx " + playerPosY + "," + playerPosX
             + " targetPos yx " + targetPosY + "," + targetPosX);
     Level l = level.clone();
-    String after = l.toString();
-    l.rows.get(playerPosY).cols.set(playerPosX, playerBefore);
-    l.rows.get(targetPosY).cols.set(targetPosX, targetBefore);
-    String before = l.toString();
-    animation.add(before);
+    String after = LevelWriter.instance.toString(l, true);
+    Block blockForPlayer = player.clone();
+    blockForPlayer.type = DEFAULT; // remove player
+    l.rows.get(playerPosY).cols.set(playerPosX, blockForPlayer);
 
-    l.rows.get(playerPosY).cols.set(playerPosX, new Block(DEFAULT, null, null));
-    l.rows.get(targetPosY).cols.set(targetPosX, new Block(DEFAULT, null, null));
-    before = l.toString();
+    Block blockForTarget = targetBefore.clone();
+    blockForTarget.type = DEFAULT; // remove player
+    l.rows.get(targetPosY).cols.set(targetPosX, blockForTarget);
+    String before = LevelWriter.instance.toString(l, true);
+    //animation.add(before);
+    System.out.println(before);
+    //l.rows.get(playerPosY).cols.set(playerPosX, new Block(DEFAULT, null, null));
+    //l.rows.get(targetPosY).cols.set(targetPosX, new Block(DEFAULT, null, null));
+    //before = l.toString();
 
     char[][] gridBefore = as2dGrid(before);
 
     int h = gridBefore.length;
     int w = gridBefore[0].length;
 
-    char[][] playerBeforeGrid = as2dGrid(LevelWriter.instance.toString(playerBefore));
-    char[][] targetGrid = as2dGrid(LevelWriter.instance.toString(target));
+    char[][] playerBeforeGrid = as2dGrid(LevelWriter.instance.toString(playerBefore, true));
+    char[][] targetGrid = as2dGrid(LevelWriter.instance.toString(target, true));
 
     int shiftMax = 5;
     for (int shift = 1; shift <= shiftMax; shift++) {
+      if (shift <= 4) {
+        char[][] grid = new char[h][w];
 
-      char[][] grid = new char[h][w];
+        for (int gridY = 0; gridY < h; gridY++) {
+          for (int gridX = 0; gridX < w; gridX++) {
 
-      for (int gridY = 0; gridY < h; gridY++) {
-        for (int gridX = 0; gridX < w; gridX++) {
+            char value = gridBefore[gridY][gridX];
 
-          char value = gridBefore[gridY][gridX];
-
-          boolean isPlayerCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, gridY, gridX);
-          boolean isTargetCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, gridY, gridX);
-          //System.out.println("grid yx " + gridY + "," + gridX + ": player? " + isPlayerCoord + ", target? " + isTargetCoord);
-          //char value = gridBefore[gridY - moveAwayDir.dy * shift][gridX - moveAwayDir.dx * shift];
-          if (true) { //gridX % 6 != 0 && gridY % 6 != 0) {
+            boolean isPlayerCoord = isBlockCoordForGridCoord(playerPosY, playerPosX, gridY, gridX);
+            boolean isTargetCoord = isBlockCoordForGridCoord(targetPosY, targetPosX, gridY, gridX);
+            //System.out.println("grid yx " + gridY + "," + gridX + ": player? " + isPlayerCoord + ", target? " + isTargetCoord);
+            //char value = gridBefore[gridY - moveAwayDir.dy * shift][gridX - moveAwayDir.dx * shift];
+            //if (true) { //gridX % 6 != 0 && gridY % 6 != 0) {
             if (isPlayerCoord) {
               int shiftedCoordY = (gridY % 6 - moveAwayDir.dy * shift);
               int shiftedCoordX = (gridX % 6 - moveAwayDir.dx * shift);
-              value = getOrBlank(playerBeforeGrid, shiftedCoordY, shiftedCoordX);// 'P';
+              value = getCharToMove(true, player, playerBefore, target, targetBefore,
+                      getOrBlank(playerBeforeGrid, shiftedCoordY, shiftedCoordX), value);// 'P';
             }
 
             if (isTargetCoord) {
               int shiftedCoordY = (gridY % 6 + enterDir.dy * (shiftMax - shift));
               int shiftedCoordX = (gridX % 6 + enterDir.dx * (shiftMax - shift));
-              value = getOrBlank(targetGrid, shiftedCoordY, shiftedCoordX); // 'T';
+              value = getCharToMove(false, player, playerBefore, target, targetBefore,
+                      getOrBlank(targetGrid, shiftedCoordY, shiftedCoordX), value); // 'T';
             }
+            //}
+
+            grid[gridY][gridX] = value;
           }
-
-          grid[gridY][gridX] = value;
         }
-      }
 
-      animation.add(stream(grid)
-              .map(row -> new String(row))
-              .reduce(":", (a, b) -> a + "\n" + b));
-      // gridBefore = grid;
+        animation.add(stream(grid)
+                .map(row -> new String(row))
+                .reduce(": ", (a, b) -> a + "\n" + b));
+        // gridBefore = grid;
+      }
     }
     //   l.rows.get(playerPosY).cols.set(playerPosX, player);
     // l.rows.get(targetPosY).cols.set(targetPosX, target);
     animation.add(after);
+  }
+
+  char getCharToMove(boolean playerBlock, Block player, Block playerBefore,
+                     Block target, Block targetBefore,
+                     char current,
+                     char currentOriginal) {
+    if (playerBlock) {
+      char small = uCase(player.smallU, playerBefore.smallU, current, false);
+      if (small != 0) {
+        return small;
+      }
+      char big = uCase(player.bigU, playerBefore.bigU, current, true);
+      if (big != 0) {
+        return big;
+      }
+    } else {
+      char small = uCase(target.smallU, targetBefore.smallU, current, false);
+      if (small != 0) {
+        return small;
+      }
+      char big = uCase(target.bigU, targetBefore.bigU, current, true);
+      if (big != 0) {
+        return big;
+      }
+    }
+    return currentOriginal;
+  }
+
+  char uCase(U now, U before, char current, boolean big) {
+    if (current == 'o') {
+      return current;
+    }
+    if (now != null && before == null) {
+      if (current == (now.type == IMPORTANT ? big ? '\'' : '#' : big ? '-' : '+'))
+        return current;
+    }
+    if (before != null && now == null) {
+      if (current == (before.type == IMPORTANT ? big ? '\'' : '#' : big ? '-' : '+'))
+        return current;
+    }
+    return 0;
   }
 
   char getOrBlank(char[][] grid, int y, int x) {
@@ -411,7 +462,10 @@ public class Logic {
     String[] stringRows = levelString.split("\n");
     gridBefore = stream(stringRows)
             .skip(1)
-            .map((Func1<String, Object>) row -> row.toCharArray())
+            .map((Func1<String, Object>) row -> {
+              char[] chars = row.toCharArray();
+              return chars;
+            })
             .collect(toArrayList())
             .toArray(gridBefore);
     return gridBefore;

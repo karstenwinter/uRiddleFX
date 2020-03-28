@@ -54,7 +54,9 @@ class Game {
         int color =
                 c == ' ' ? 0xFF000000
                         : c == '+' ? 0xFF808080
+                        : c == '-' ? 0xFF808000 // big variant of +
                         : c == '#' ? 0xFFFF0000
+                        : c == '\'' ? 0xFFFF0000 // big variant of #
                         : c == '.' ? 0xFF333333
                         : c == 'P' ? 0xFF330000
                         : c == 'T' ? 0xFF003300
