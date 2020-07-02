@@ -38,6 +38,7 @@ class Game {
 
     PixelWriter pixelWriter = bitmap.getPixelWriter();
     String line0 = split.get(0);
+    Random random = new Random();
     for (String line : split) {
       y++;
       if (isPix && y % 2 == 0) {
@@ -51,20 +52,26 @@ class Game {
           c = line.charAt(Math.max(0, x - (y % 2)));
         }
         // @formatter:off
+        int jitterR = c != 'G' ? 0 : random.nextInt(256);
+        int jitterG = c != 'G' ? 0 : random.nextInt(256);
+        int jitterB = c != 'G' ? 0 : random.nextInt(256);
+        int randomColor = 0xFF000000 | (jitterR << 16) | (jitterG << 8) | jitterB;
+
+        // @formatter:off
         int color =
                 c == ' ' ? 0xFF000000
                         : c == '+' ? 0xFF808080
-                        : c == '-' ? 0xFF808000 // big variant of +
+                        : c == '-' ? 0xFF808080
                         : c == '#' ? 0xFFFF0000
-                        : c == '\'' ? 0xFFFF0000 // big variant of #
+                        : c == '\'' ? 0xFFFF0000
                         : c == '.' ? 0xFF333333
                         : c == 'P' ? 0xFF330000
-                        : c == 'T' ? 0xFF003300
                         : c == 'X' ? 0xFFFF3333
                         : c == 'd' ? 0xFF33FF33
                         : c == 'D' ? 0xFFFF3333
                         : c == 's' ? 0xFF33FF33
                         : c == 'S' ? 0xFFFF3333
+                        : c == 'G' ? randomColor
                         : c == '1' ? 0xFFFFA500
                         : c == '2' ? 0xFF3377CC
 
@@ -72,6 +79,7 @@ class Game {
                         : c == '4' ? 0xFFCC33CC
                         : c == '5' ? 0xFFCCCC33
                         : c == '6' ? 0xFF33CCCC
+                        : c == '7' ? 0xFF3333CC
 
                         : c == 'q' ? 0xFF00FFFF
                         : c == 'o' ? 0xFFFFFF00
@@ -85,7 +93,7 @@ class Game {
                         : c == ')' ? 0xFFAF3F00
                         : 0xFFFFFF00;
         // @formatter:on
-        if (counter != null && "3456".contains(c + "") && Integer.parseInt(c + "") - 2 != counter) {
+        if (counter != null && "34567".contains(c + "") && Integer.parseInt(c + "") - 2 != counter) {
           color = 0xFF000000;
         }
         int sc = SCALE; // level.pixelate ? SCALE : SCALE - 1;

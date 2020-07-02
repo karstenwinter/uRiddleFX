@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_uriddlefx" default="compile.module.uriddlefx">
+  <dirname property="module.uriddlefx.basedir" file="${ant.file.module_uriddlefx}"/>
+  
+  <property name="module.jdk.home.uriddlefx" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.uriddlefx" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.uriddlefx" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.uriddlefx" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="uriddlefx.output.dir" value="${module.uriddlefx.basedir}/out/production/uRiddleFX"/>
+  <property name="uriddlefx.testoutput.dir" value="${module.uriddlefx.basedir}/out/test/uRiddleFX"/>
+  
+  <path id="uriddlefx.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="uriddlefx.module.production.classpath">
+    <path refid="${module.jdk.classpath.uriddlefx}"/>
+    <path refid="library.uriddlefx.classpath"/>
+    <pathelement location="${path.variable.maven_repository}/junit/junit/3.8.2/junit-3.8.2.jar"/>
+  </path>
+  
+  <path id="uriddlefx.runtime.production.module.classpath">
+    <pathelement location="${uriddlefx.output.dir}"/>
+    <path refid="library.uriddlefx.classpath"/>
+    <pathelement location="${path.variable.maven_repository}/junit/junit/3.8.2/junit-3.8.2.jar"/>
+  </path>
+  
+  <path id="uriddlefx.module.classpath">
+    <path refid="${module.jdk.classpath.uriddlefx}"/>
+    <pathelement location="${uriddlefx.output.dir}"/>
+    <path refid="library.uriddlefx.classpath"/>
+    <pathelement location="${path.variable.maven_repository}/junit/junit/3.8.2/junit-3.8.2.jar"/>
+  </path>
+  
+  <path id="uriddlefx.runtime.module.classpath">
+    <pathelement location="${uriddlefx.testoutput.dir}"/>
+    <pathelement location="${uriddlefx.output.dir}"/>
+    <path refid="library.uriddlefx.classpath"/>
+    <pathelement location="${path.variable.maven_repository}/junit/junit/3.8.2/junit-3.8.2.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.uriddlefx">
+    <patternset refid="ignored.files"/>
+    <exclude name="out/**"/>
+    <exclude name="out/artifacts/**"/>
+    <exclude name="out/artifacts/uRiddleFX/**"/>
+    <exclude name="out/production/**"/>
+    <exclude name="out/production/uRiddleFX/**"/>
+    <exclude name="out/production/uRiddleFX/src/**"/>
+    <exclude name="out/production/uRiddleFX/src/sample/**"/>
+    <exclude name="out/production/uRiddleFX/test/**"/>
+    <exclude name="out/production/uRiddleFX/.idea/**"/>
+    <exclude name="out/production/uRiddleFX/.idea/libraries/**"/>
+    <exclude name="out/production/uRiddleFX/.idea/codeStyles/**"/>
+    <exclude name="out/production/uRiddleFX/solid/**"/>
+    <exclude name="out/production/uRiddleFX/solid/stream/**"/>
+    <exclude name="out/production/uRiddleFX/solid/optional/**"/>
+    <exclude name="out/production/uRiddleFX/solid/functions/**"/>
+    <exclude name="out/production/uRiddleFX/solid/collectors/**"/>
+    <exclude name="out/production/uRiddleFX/solid/collections/**"/>
+    <exclude name="out/production/uRiddleFX/sample/**"/>
+    <exclude name="out/production/uRiddleFX/uriddle/**"/>
+    <exclude name="out/production/uRiddleFX/uriddle/logic/**"/>
+    <exclude name="out/production/uRiddleFX/resources/**"/>
+    <exclude name="out/production/uRiddleFX/resources/uriddle/**"/>
+    <exclude name="out/production/uRiddleFX/resources/uriddle/logic/**"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.uriddlefx">
+    <patternset refid="excluded.from.module.uriddlefx"/>
+  </patternset>
+  
+  <path id="uriddlefx.module.sourcepath">
+    <dirset dir="${module.uriddlefx.basedir}/../../Projekte">
+      <include name="uRiddleFX"/>
+      <include name="uRiddleFX/src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.uriddlefx" depends="compile.module.uriddlefx.production,compile.module.uriddlefx.tests" description="Compile module uRiddleFX"/>
+  
+  <target name="compile.module.uriddlefx.production" depends="register.custom.compilers" description="Compile module uRiddleFX; production classes">
+    <mkdir dir="${uriddlefx.output.dir}"/>
+    <javac2 destdir="${uriddlefx.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.uriddlefx}/javac">
+      <compilerarg line="${compiler.args.uriddlefx}"/>
+      <bootclasspath refid="uriddlefx.module.bootclasspath"/>
+      <classpath refid="uriddlefx.module.production.classpath"/>
+      <src refid="uriddlefx.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.uriddlefx"/>
+    </javac2>
+    
+    <copy todir="${uriddlefx.output.dir}">
+      <fileset dir="${module.uriddlefx.basedir}">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.uriddlefx.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.uriddlefx.tests" depends="register.custom.compilers,compile.module.uriddlefx.production" description="compile module uRiddleFX; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.uriddlefx" description="cleanup module">
+    <delete dir="${uriddlefx.output.dir}"/>
+    <delete dir="${uriddlefx.testoutput.dir}"/>
+  </target>
+</project>

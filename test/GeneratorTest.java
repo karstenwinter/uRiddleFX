@@ -1,4 +1,4 @@
-package uriddle.logic.test;
+package test;
 
 import junit.framework.*;
 import uriddle.logic.*;

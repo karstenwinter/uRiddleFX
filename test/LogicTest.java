@@ -1,4 +1,4 @@
-package uriddle.logic.test;
+package test;
 
 import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Direction.*;

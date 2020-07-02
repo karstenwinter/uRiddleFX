@@ -1,6 +1,6 @@
 package sample;
 
-import com.sun.tools.javac.util.Log;
+
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -248,7 +248,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           }
         }
       } else if (value == RYTHM) {
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= 5; i++) {
           block.num = i;
           addToolbarElement(toolBar, block);
         }

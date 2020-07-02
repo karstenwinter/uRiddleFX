@@ -8,6 +8,7 @@ public class Block {
     DOOR, SWITCH,
     PORTAL,
     RYTHM,
+    GLITCH,
     PASSWAY,
     PIXELSPOT,
     MIRRORPLAYER,

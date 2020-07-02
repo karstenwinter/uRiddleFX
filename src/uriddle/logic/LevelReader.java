@@ -103,7 +103,9 @@ public class LevelReader {
           block.num = centerChar == 's' ? 1 : 2;
         } else if (centerChar == 'p' || centerChar == 'P') {
           block.type = PIXELSPOT;
-        } else if (centerChar == '3' || centerChar == '4' || centerChar == '5' || centerChar == '6') {
+        } else if (centerChar == 'g' || centerChar == 'G') {
+          block.type = GLITCH;
+        } else if (centerChar == '3' || centerChar == '4' || centerChar == '5' || centerChar == '6' || centerChar == '7') {
           block.type = RYTHM;
           block.num = Integer.parseInt(centerChar + "") - 2;
         } else if (centerChar == '<' || centerChar == '>' || centerChar == 'v' || centerChar == '^') {

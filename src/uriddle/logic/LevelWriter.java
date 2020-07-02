@@ -227,7 +227,7 @@ public class LevelWriter {
     for (Row row : level.rows) {
       y++;
       if (y == 0) {
-        res.append(level.id + ": " + level.name).append("\n");
+        res.append(level.id).append(": ").append(level.name).append("\n");
         insertBlankLine(res, w, row);
         res.append("\n");
       }
@@ -263,6 +263,8 @@ public class LevelWriter {
             String c = strings[i];
 
             res.append(c);
+          } else if (b.type == BlockType.GLITCH) {
+            appendTimes(res, 5, "G");
           } else if (b.type == BlockType.RYTHM) {
             appendTimes(res, 5, (2 + b.num) + "");
           } else if (b.type == BlockType.PASSWAY) {
@@ -411,7 +413,7 @@ public class LevelWriter {
   }
 
   String getPatternDifferent(U u) {
-    return u.type == UType.IMPORTANT ? "'" : "-";
+    return u.type == UType.IMPORTANT ? "'" : "+";
   }
 
   StringBuilder appendTimes(StringBuilder stringBuilder, int times, String p) {
