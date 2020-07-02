@@ -339,7 +339,7 @@ public class Logic {
     System.out.println("playerPos yx " + playerPosY + "," + playerPosX
             + " targetPos yx " + targetPosY + "," + targetPosX);
     Level l = level.clone();
-    String after = LevelWriter.instance.toString(l, true);
+    String after = LevelWriter.instance.toString(l, true, false);
     Block blockForPlayer = player.clone();
     blockForPlayer.type = DEFAULT; // remove player
     l.rows.get(playerPosY).cols.set(playerPosX, blockForPlayer);
@@ -347,7 +347,7 @@ public class Logic {
     Block blockForTarget = targetBefore.clone();
     blockForTarget.type = DEFAULT; // remove player
     l.rows.get(targetPosY).cols.set(targetPosX, blockForTarget);
-    String before = LevelWriter.instance.toString(l, true);
+    String before = LevelWriter.instance.toString(l, true, false);
     //animation.add(before);
     System.out.println(before);
     //l.rows.get(playerPosY).cols.set(playerPosX, new Block(DEFAULT, null, null));

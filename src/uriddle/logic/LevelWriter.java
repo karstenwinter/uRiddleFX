@@ -55,6 +55,40 @@ public class LevelWriter {
           "## ##"
   };
 
+  static String[][] rythms = {
+          {
+                  "  +  ",
+                  " ++  ",
+                  "  +  ",
+                  "  +  ",
+                  "  +  "
+          }, {
+          " +++ ",
+          "   + ",
+          " +++ ",
+          " +   ",
+          " +++ "
+  }, {
+          " +++ ",
+          "   + ",
+          " +++ ",
+          "   + ",
+          " +++ "
+  }, {
+          " + + ",
+          " + + ",
+          " +++ ",
+          "   + ",
+          "   + "
+  }, {
+          " +++ ",
+          " +   ",
+          " +++ ",
+          "   + ",
+          " +++ "
+  }
+  };
+
   static String[] gate = {
           "     ",
           " \\ / ",
@@ -207,14 +241,14 @@ public class LevelWriter {
   }
 
   public String toString(Block b, boolean markBigDifferently) {
-    return toString(new Level("", "", new Row(b)), markBigDifferently);
+    return toString(new Level("", "", new Row(b)), markBigDifferently, false);
   }
 
   public String toString(Level level) {
-    return toString(level, false);
+    return toString(level, false, false);
   }
 
-  public String toString(Level level, boolean markBigDifferently) {
+  public String toString(Level level, boolean markBigDifferently, boolean forPersistence) {
     StringBuilder res = new StringBuilder();
     StringBuilder small = new StringBuilder();
     StringBuilder big = new StringBuilder();
@@ -266,7 +300,15 @@ public class LevelWriter {
           } else if (b.type == BlockType.GLITCH) {
             appendTimes(res, 5, "G");
           } else if (b.type == BlockType.RYTHM) {
-            appendTimes(res, 5, (2 + b.num) + "");
+            int index = b.num - 1;
+            String toWrite = (2 + b.num) + "";
+            String str = rythms[index][i];
+            if (forPersistence) {
+              appendTimes(res, 5, toWrite);
+            } else {
+              res.append(str.replace(" ", toWrite).replace('+', ' '));
+            }
+
           } else if (b.type == BlockType.PASSWAY) {
             String str = passWay[i];
             res.append(str);

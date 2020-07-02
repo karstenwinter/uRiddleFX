@@ -479,7 +479,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
               StandardCopyOption.REPLACE_EXISTING);*/
 
       String str = levels
-              .map(Level::toString)
+              .map(l -> LevelWriter.instance.toString(l, true, true))
               .reduce((a, b) -> a + "\n" + b)
               .get() + "\nEND";
 
@@ -596,7 +596,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     button.setOnMouseClicked(e -> {
       if (saveMode) {
         ClipboardContent content = new ClipboardContent();
-        content.putString(levelToPlay.toString());
+        content.putString(LevelWriter.instance.toString(levelToPlay, true, true));
         clipboard.setContent(content);
         button.setText("Saved!");
 

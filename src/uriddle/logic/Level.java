@@ -35,7 +35,7 @@ public class Level {
 
   @Override
   public String toString() {
-    return LevelWriter.instance.toString(this, false);
+    return LevelWriter.instance.toString(this, false, false);
   }
 
   public Level clone() {
