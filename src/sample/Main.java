@@ -479,7 +479,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
               StandardCopyOption.REPLACE_EXISTING);*/
 
       String str = levels
-              .map(l -> LevelWriter.instance.toString(l, true, true))
+              .map(l -> LevelWriter.instance.toString(l, false, true))
               .reduce((a, b) -> a + "\n" + b)
               .get() + "\nEND";
 
