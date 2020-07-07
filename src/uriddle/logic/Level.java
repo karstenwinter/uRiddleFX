@@ -26,6 +26,7 @@ public class Level {
   public final List<Row> rows = new ArrayList<Row>();
   public boolean pixelate = false;
   public int counter = 1;
+  public int maxCounter = 2;
 
   public Level(String id, String name, Row... rows) {
     this.name = name;
@@ -68,6 +69,7 @@ public class Level {
     // System.out.println(rows.getClass() + " / " + rows.size());
     Level level = new Level(id, name, rows.toArray(new Row[0]));
     level.counter = counter;
+    level.maxCounter = maxCounter;
     level.pixelate = pixelate;
     return level;
   }

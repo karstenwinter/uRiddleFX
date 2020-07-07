@@ -108,6 +108,7 @@ public class LevelReader {
         } else if (centerChar == '3' || centerChar == '4' || centerChar == '5' || centerChar == '6' || centerChar == '7') {
           block.type = RYTHM;
           block.num = Integer.parseInt(centerChar + "") - 2;
+          res.maxCounter = Math.max(block.num, res.maxCounter);
         } else if (centerChar == '<' || centerChar == '>' || centerChar == 'v' || centerChar == '^') {
           block.type = ONEWAY;
           block.oneWay = new OneWay(OneWay.OneWayType.NOT_REVERSE,

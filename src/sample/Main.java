@@ -21,6 +21,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import solid.functions.Action1;
 import uriddle.logic.*;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static solid.stream.Stream.stream;
 import static uriddle.logic.Block.BlockType.*;
 import static uriddle.logic.Block.BlockType.DEFAULT;
 import static uriddle.logic.Level.State.REACHED_EXIT;
@@ -177,14 +179,14 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     });
 
     HBox titleResize = new HBox(
-            label("Box Code Editor v4"),
+            label("Box Code Editor v5"),
             createGap(),
             label("Resize"),
             buttonSize(-1, 0),
             buttonSize(1, 0),
             buttonSize(0, -1),
             buttonSize(0, 1),
-            label(" scale"),
+            label(" Scale"),
             buttonScale(-1),
             buttonScale(1),
             label(" wasd: move, (r)eset, samples: (n)ext, (p)rev"),
@@ -650,6 +652,16 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
         img.setOnMouseClicked((MouseEvent event) -> {
           levelToEdit.rows.get(yNow).cols.set(xNow, inputBlock.clone());
+
+          levelToEdit.maxCounter = 2;
+          for (Row row : levelToEdit.rows) {
+            for (Block b : row.cols) {
+              if (b.type == RYTHM) {
+                levelToEdit.maxCounter = Math.max(b.num, levelToEdit.maxCounter);
+              }
+            }
+          }
+
           Game.drawToBitmap(eImg, LevelWriter.instance.toString(inputBlock), false, null);
           img.setImage(eImg);
           levelToPlay = levelToEdit.clone();
@@ -694,7 +706,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   }
 
   private void updateView() {
-    primaryStage.setTitle("uRiddle level " + levelToPlay.id + " (" + levelToPlay.name + ")");
+    primaryStage.setTitle("uRiddle level " + levelToPlay.id + " (" + levelToPlay.name + ") #c" + levelToPlay.counter + "/" + levelToPlay.maxCounter);
     /*writableImage
             .getPixelWriter()
             .setPixels(

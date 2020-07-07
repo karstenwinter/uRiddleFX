@@ -40,10 +40,10 @@ public class Logic {
     int comp = Integer.valueOf(state.ordinal()).compareTo(state2.ordinal());
     if (state != CANNOT_MOVE) {
       level.counter += 1;
-      if (level.counter > 5) {
+      if (level.counter > level.maxCounter) {
         level.counter = 1;
       }
-      System.out.println("Counter " + level.counter);
+      System.out.println("Counter " + level.counter + "/" + level.maxCounter);
     }
     if (comp < 0) {
       return state;
