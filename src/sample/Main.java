@@ -20,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import solid.functions.Action1;
 import uriddle.logic.*;
@@ -38,12 +39,13 @@ import static uriddle.logic.Block.BlockType.DEFAULT;
 import static uriddle.logic.Level.State.REACHED_EXIT;
 
 public class Main extends Application implements EventHandler<KeyEvent> {
-
+  final String version = "v6";
   final String saveText = "Save to Clip";
   final String trySolveText = "Try Solve";
   final String animationsText = "Anmations are ";
   final String speedText = "Delay ";
 
+  private boolean demo = false;
   private WritableImage writableImage;
   private List<Level> levels = new ArrayList<Level>();
   private Level levelToPlay;
@@ -54,12 +56,14 @@ public class Main extends Application implements EventHandler<KeyEvent> {
   private ImageView inputBlockView;
   private VBox editorPane;
   private Button saveButton;
+  private Label titleTxt;
 
   private Level levelToEdit;
   private ScrollPane packList;
   private ScrollPane levelList;
   private Path currentFile;
   private Path sampleLevels = Paths.get("p99-sample-levels.txt");
+  private Path allLevels = Paths.get("p98-all-levels.txt");
   private FlowPane toolBar;
   private Button solveButton;
   private boolean animations = true;
@@ -119,6 +123,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     editorPane = new VBox();
     saveButton = buttonIo(saveText, true);
 
+
+    packList = newIoList(true);
+
+    readFile(sampleLevels);
+
+    levelList = newIoList(false);
+
     HBox editorArea = new HBox(
             new VBox(
                     label("Select"),
@@ -129,32 +140,9 @@ public class Main extends Application implements EventHandler<KeyEvent> {
                     label("Test"),
                     imageView)
     );
-
-    packList = newIoList(true);
-
-    readFile(sampleLevels);
-
-    levelList = newIoList(false);
-
-    VBox manage = new VBox(
-            label("Quicksave"),
-            new HBox(
-                    saveButton,
-                    buttonIo("Load from Clip", false)
-            ),
-            label("Pack list"),
-            packList,
-            label("Level list"),
-            levelList
-    );
-    HBox belowTitle = new HBox(
-            manage,
-            editorArea
-    );
-    manage.setMinWidth(300);
     solveButton = new Button(); // createSolveButton();
 
-    Button animateButton = new Button(animationsText + "off");
+    Button animateButton = new Button(animationsText + (this.animations ? "on" : "off"));
     animateButton.setOnMouseClicked(x -> {
       this.animations = !this.animations;
       animateButton.setText(animationsText + (this.animations ? "on" : "off"));
@@ -178,8 +166,27 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       b2.setText("d2" + Logic.instance.delta2);
     });
 
+    Button btnPlay = new Button("Demo mode");
+
+    VBox manage = new VBox(
+            label("Quicksave"),
+            new HBox(
+                    saveButton,
+                    buttonIo("Load from Clip", false)
+            ),
+            label("Pack list"),
+            packList,
+            label("Level list"),
+            levelList
+    );
+    manage.setMinWidth(300);
+    HBox belowTitle = new HBox(
+            manage,
+            editorArea
+    );
     HBox titleResize = new HBox(
-            label("Box Code Editor v5"),
+            label("Box Code Editor " + version),
+            btnPlay,
             createGap(),
             label("Resize"),
             buttonSize(-1, 0),
@@ -202,6 +209,47 @@ public class Main extends Application implements EventHandler<KeyEvent> {
                     belowTitle
             )
     );
+    btnPlay.setOnAction(x -> {
+
+      demo = true;
+      packList = newIoList(true);
+
+      readFile(allLevels);
+
+      levelList = newIoList(false);
+
+      VBox manage1 = new VBox(
+              label("Pack list"),
+              packList,
+              label("Level list"),
+              levelList
+      );
+      titleTxt = label("Demo");
+      HBox editorArea1 = new HBox(
+              new VBox(
+                      titleTxt,
+                      imageView)
+      );
+      HBox belowTitle1 = new HBox(
+              manage1,
+              editorArea1
+      );
+      HBox titleResize1 = new HBox(
+              label("Box Code Demo " + version),
+              label(" Scale"),
+              buttonScale(-1),
+              buttonScale(1),
+              label(" wasd: move, (r)eset, samples: (n)ext, (p)rev"),
+              animateButton
+      );
+      root.getChildren().clear();
+      root.getChildren().add(
+              new VBox(
+                      titleResize1,
+                      belowTitle1
+              )
+      );
+    });
     root.setOnKeyReleased(this);
     if (levels.isEmpty()) {
       levels = parseLevels(Game.getLevels());
@@ -210,6 +258,13 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     select(levels.get(index));
     fillEditorPane();
     updateView();
+  }
+
+
+  private void setTitle(String s) {
+    if (titleTxt != null) {
+      titleTxt.setText(s);
+    }
   }
 
   Button createSolveButton() {
@@ -324,16 +379,23 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       List<Path> files = listTextFiles();
       if (files.stream().noneMatch(x -> x.toFile().getName().equals(sampleLevels.toFile().getName()))) {
         Stream<Level> levels = Stream.empty();
+        Stream<Level> allLevelsFromTxt = Stream.empty();
         try {
           levels = Game.getLevels().stream()
                   .filter(x -> x.startsWith("i") || x.startsWith("l"))
                   .map(LevelReader.instance::fromString);
+
+          allLevelsFromTxt = Game.getLevels().stream()
+                  .map(LevelReader.instance::fromString);
+
         } catch (Exception e) {
           e.printStackTrace();
         }
         Path sampleLevels = this.sampleLevels;
 
         writeLevelListTo(levels, sampleLevels);
+        writeLevelListTo(allLevelsFromTxt, allLevels);
+
         files = listTextFiles();
       }
       for (Path file : files) {
@@ -346,19 +408,20 @@ public class Main extends Application implements EventHandler<KeyEvent> {
           createLevelList(vBox1, file);
         });
         hBox.getChildren().add(e);
-        Button dupFile = new Button("Duplicate");
-        dupFile.setOnMouseClicked(event2 -> {
-          File target = Paths.get(file.getParent().toString(),
-                  "dup-" + System.currentTimeMillis() + "-" + file.toFile().getName()).toFile();
-          try {
-            Files.copy(file, new FileOutputStream(target));
-          } catch (IOException ex) {
-            ex.printStackTrace();
-          }
-          refresh.getOnMouseClicked().handle(null);
-        });
-        hBox.getChildren().add(dupFile);
-
+        if (!demo) {
+          Button dupFile = new Button("Duplicate");
+          dupFile.setOnMouseClicked(event2 -> {
+            File target = Paths.get(file.getParent().toString(),
+                    "dup-" + System.currentTimeMillis() + "-" + file.toFile().getName()).toFile();
+            try {
+              Files.copy(file, new FileOutputStream(target));
+            } catch (IOException ex) {
+              ex.printStackTrace();
+            }
+            refresh.getOnMouseClicked().handle(null);
+          });
+          hBox.getChildren().add(dupFile);
+        }
         Label textField = new Label(file.toFile().getName());
         hBox.getChildren().add(textField);
 
@@ -376,17 +439,17 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       readFile(fileToRead);
     }
     vBox.getChildren().clear();
-
-    Button saveButton2 = new Button("Save Pack");
-    saveButton2.setOnMouseClicked(e -> {
-      levels = vBox.getChildren().stream()
-              .filter(x -> x.getUserData() != null)
-              .map(x -> ((Level) x.getUserData()).clone())
-              .collect(Collectors.toList());
-      saveCurrentPack();
-    });
-    vBox.getChildren().add(saveButton2);
-
+    if (!demo) {
+      Button saveButton2 = new Button("Save Pack");
+      saveButton2.setOnMouseClicked(e -> {
+        levels = vBox.getChildren().stream()
+                .filter(x -> x.getUserData() != null)
+                .map(x -> ((Level) x.getUserData()).clone())
+                .collect(Collectors.toList());
+        saveCurrentPack();
+      });
+      vBox.getChildren().add(saveButton2);
+    }
     int index = -1;
     for (Level levelForInit : levels) {
       index++;
@@ -409,35 +472,38 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       // saveBtn.setDisable(!current);
       hBox.getChildren().add(saveBtn);
       */
-      Button delButton = new Button("Delete");
-      delButton.setOnMouseClicked(event -> {
-        if (levels.size() > 1) {
+      if (!demo) {
+        Button delButton = new Button("Delete");
+        delButton.setOnMouseClicked(event -> {
+          if (levels.size() > 1) {
+            Level userData = (Level) hBox.getUserData();
+            levels = levels.stream()
+                    .filter(x -> !x.id.equals(userData.id))
+                    .collect(Collectors.toList());
+
+            saveCurrentPack();
+            createLevelList(vBox, this.currentFile);
+          }
+        });
+        hBox.getChildren().add(delButton);
+
+        Button dupFile = new Button("Duplicate");
+        // saveBtn.setDisable(!current);
+        final int indexNow = index;
+        dupFile.setOnMouseClicked(event2 -> {
           Level userData = (Level) hBox.getUserData();
-          levels = levels.stream()
-                  .filter(x -> !x.id.equals(userData.id))
-                  .collect(Collectors.toList());
-
+          Level clone = userData.clone();
+          clone.id = "dup-" + clone.id + "-" + System.currentTimeMillis();
+          levels.add(indexNow, clone);
           saveCurrentPack();
-          createLevelList(vBox, this.currentFile);
-        }
-      });
-      hBox.getChildren().add(delButton);
-
-      Button dupFile = new Button("Duplicate");
-      // saveBtn.setDisable(!current);
-      final int indexNow = index;
-      dupFile.setOnMouseClicked(event2 -> {
-        Level userData = (Level) hBox.getUserData();
-        Level clone = userData.clone();
-        clone.id = "dup-" + clone.id + "-" + System.currentTimeMillis();
-        levels.add(indexNow, clone);
-        saveCurrentPack();
-        createLevelList((VBox) levelList.getContent(), this.currentFile);
-      });
-      hBox.getChildren().add(dupFile);
+          createLevelList((VBox) levelList.getContent(), this.currentFile);
+        });
+        hBox.getChildren().add(dupFile);
+      }
 
       TextField textFieldID = new TextField(levelForInit.id);
       textFieldID.setMaxWidth(60);
+      textFieldID.setEditable(!demo);
       textFieldID.setOnKeyReleased(ev -> {
         Level userData = (Level) hBox.getUserData();
         userData.id = textFieldID.getText();
@@ -447,6 +513,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       hBox.getChildren().add(textFieldID);
 
       TextField textFieldNMW = new TextField(levelForInit.name);
+      textFieldNMW.setEditable(!demo);
       hBox.getChildren().add(textFieldNMW);
       textFieldNMW.setOnKeyReleased(ev -> {
         Level userData = (Level) hBox.getUserData();
@@ -707,6 +774,7 @@ public class Main extends Application implements EventHandler<KeyEvent> {
 
   private void updateView() {
     primaryStage.setTitle("uRiddle level " + levelToPlay.id + " (" + levelToPlay.name + ") #c" + levelToPlay.counter + "/" + levelToPlay.maxCounter);
+    setTitle(index + " " + levelToPlay.name);
     /*writableImage
             .getPixelWriter()
             .setPixels(
@@ -722,10 +790,10 @@ public class Main extends Application implements EventHandler<KeyEvent> {
     //}
     // image = new Image(getClass().getResource("bg.png").openStream());
 
-    imageView.setImage(writableImage);
 
     //  System.out.println(levelToPlay.toString());
     Game.drawToBitmap(levelToPlay, writableImage);
+    imageView.setImage(writableImage);
   }
 
   @Override
@@ -795,8 +863,17 @@ public class Main extends Application implements EventHandler<KeyEvent> {
       if (go.getKey() == REACHED_EXIT) {
         System.out.println("You reached the exit! Well done!");
         solveButton.setText("You solved it :)");
-        //index++;
-        //select(levels.get(index));
+        if (demo) {
+          index++;
+          if (index < levels.size()) {
+            Level lv = levels.get(index);
+            select(lv);
+            setTitle(index + " " + lv.name);
+            updateView();
+          } else {
+            setTitle("The End :)");
+          }
+        }
       }
 
     }
