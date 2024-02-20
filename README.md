@@ -20,6 +20,9 @@ EDITOR FEATURES:
 - Easy file short cut buttons
 - Select / Delete / Duplicate Level
 
-Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
+1. Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/uRiddleFX.jar">Jar file</a>
+1. Download: <a href="https://github.com/karsten314159/uRiddleFX/raw/master/out/artifacts/uRiddleFX/p99-sample-levels.txt">sample level txt file</a>
+2. Download + Install Java <a href="https://portableapps.com/apps/utilities/java_portable">e.g. here as a portable version</a>
+3. Run <tt>java -jar uRiddleFX.jar</tt>
 
 ![](edv2.png "Preview")
